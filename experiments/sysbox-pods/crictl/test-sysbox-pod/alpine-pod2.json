@@ -1,0 +1,14 @@
+{
+    "metadata": {
+        "name": "alpine-sandbox2",
+        "namespace": "default",
+        "attempt": 1,
+        "uid": "sysbox-pod2"
+    },
+    "annotations": {
+        "io.kubernetes.cri-o.userns-mode": "auto:size=65536"
+    },
+    "log_directory": "/tmp",
+    "linux": {
+    }
+}

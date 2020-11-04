@@ -1,0 +1,55 @@
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: my-pvol
+  labels:
+    type: local
+spec:
+  persistentVolumeReclaimPolicy: Delete
+  storageClassName: pv-demo
+  capacity:
+    storage: 500Mi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/dev/sdc"
+---
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: my-pvol2
+  labels:
+    type: local
+spec:
+  persistentVolumeReclaimPolicy: Delete
+  storageClassName: pv-demo2
+  capacity:
+    storage: 500Mi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/dev/sdc/.coder/cache/docker"
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: pvol-claim
+spec:
+  storageClassName: pv-demo
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 250Mi
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: pvol-claim2
+spec:
+  storageClassName: pv-demo2
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 250Mi

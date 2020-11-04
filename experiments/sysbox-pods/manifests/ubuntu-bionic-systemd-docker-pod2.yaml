@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ubu-bio-systemd-docker2
+  annotations:
+    io.kubernetes.cri-o.userns-mode: "auto:size=65536"
+spec:
+  runtimeClassName: sysbox-runc
+  containers:
+  - name: ubu-bio-systemd-docker2
+    image: ghcr.io/nestybox/ubuntu-bionic-systemd-docker
+    command: ["/sbin/init"]
+  restartPolicy: Never

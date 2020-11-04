@@ -1,0 +1,14 @@
+{
+  "metadata": {
+      "name": "alpine2"
+  },
+  "image":{
+      "image": "nestybox/alpine-docker"
+  },
+  "command": [
+      "top"
+  ],
+  "log_path":"alpine2.0.log",
+  "linux": {
+  }
+}

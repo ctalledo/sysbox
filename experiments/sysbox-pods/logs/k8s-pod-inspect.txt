@@ -1,0 +1,1194 @@
+# CRICTL INSPECT
+
+## K8s POD (pause container)
+
+cesar@k8s-node:~/nestybox/sysbox-internal/experiments/sysbox-pods/manifests$ sudo crictl inspectp d246438d95594
+{
+  "status": {
+    "id": "d246438d95594e794d772dc94590fe96f95a4ec32aa99c9d46e74cef4664b3db",
+    "metadata": {
+      "attempt": 0,
+      "name": "alpine-docker",
+      "namespace": "default",
+      "uid": "9db8ca51-6d54-4b79-a79e-bc14d70f5b79"
+    },
+    "state": "SANDBOX_READY",
+    "createdAt": "2021-03-02T04:47:50.725805878Z",
+    "network": {
+      "additionalIps": [],
+      "ip": "10.244.0.8"
+    },
+    "linux": {
+      "namespaces": {
+        "options": {
+          "ipc": "POD",
+          "network": "POD",
+          "pid": "POD",
+          "targetId": ""
+        }
+      }
+    },
+    "labels": {
+      "io.kubernetes.container.name": "POD",
+      "io.kubernetes.pod.name": "alpine-docker",
+      "io.kubernetes.pod.namespace": "default",
+      "io.kubernetes.pod.uid": "9db8ca51-6d54-4b79-a79e-bc14d70f5b79"
+    },
+    "annotations": {
+      "io.kubernetes.cri-o.userns-mode": "auto:size=65536",
+      "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Pod\",\"metadata\":{\"annotations\":{\"io.kubernetes.cri-o.userns-mode\":\"auto:size=65536\"},\"name\":\"alpine-docker\",\"namespace\":\"default\"},\"spec\":{\"containers\":[{\"args\":[\"-f\",\"/dev/null\"],\"command\":[\"tai
+l\"],\"image\":\"nestybox/alpine-docker\",\"name\":\"alpine-docker\"}],\"restartPolicy\":\"Never\",\"runtimeClassName\":\"sysbox-runc\",\"shareProcessNamespace\":true}}\n",
+      "kubernetes.io/config.seen": "2021-03-02T04:47:50.210875054Z",
+      "kubernetes.io/config.source": "api"
+    },
+    "runtimeHandler": ""
+  },
+  "info": {
+    "image": "k8s.gcr.io/pause:3.2",
+    "pid": 1639050,
+    "runtimeSpec": {
+      "ociVersion": "1.0.2-dev",
+      "process": {
+        "user": {
+          "uid": 0,
+          "gid": 0
+        },
+        "args": [
+          "/pause"
+        ],
+        "env": [
+          "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+          "TERM=xterm"
+        ],
+        "cwd": "/",
+        "capabilities": {
+          "bounding": [
+            "CAP_CHOWN",
+            "CAP_DAC_OVERRIDE",
+            "CAP_FSETID",
+            "CAP_FOWNER",
+            "CAP_SETGID",
+            "CAP_SETUID",
+            "CAP_SETPCAP",
+            "CAP_NET_BIND_SERVICE",
+            "CAP_KILL"
+          ],
+          "effective": [
+            "CAP_CHOWN",
+            "CAP_DAC_OVERRIDE",
+            "CAP_FSETID",
+            "CAP_FOWNER",
+            "CAP_SETGID",
+            "CAP_SETUID",
+            "CAP_SETPCAP",
+            "CAP_NET_BIND_SERVICE",
+            "CAP_KILL"
+          ],
+          "inheritable": [
+            "CAP_CHOWN",
+            "CAP_DAC_OVERRIDE",
+            "CAP_FSETID",
+            "CAP_FOWNER",
+            "CAP_SETGID",
+            "CAP_SETUID",
+            "CAP_SETPCAP",
+            "CAP_NET_BIND_SERVICE",
+            "CAP_KILL"
+          ],
+          "permitted": [
+            "CAP_CHOWN",
+            "CAP_DAC_OVERRIDE",
+            "CAP_FSETID",
+            "CAP_FOWNER",
+            "CAP_SETGID",
+            "CAP_SETUID",
+            "CAP_SETPCAP",
+            "CAP_NET_BIND_SERVICE",
+            "CAP_KILL"
+          ]
+        },
+        "oomScoreAdj": -998
+      },
+      "root": {
+        "path": "/var/lib/containers/storage/overlay/45aab846710e3cef92d9e2d39793865e49ae5735f1e8876131214c3c6a15474c/merged",
+        "readonly": true
+      },
+      "hostname": "alpine-docker",
+      "mounts": [
+        {
+          "destination": "/proc",
+          "type": "proc",
+          "source": "proc",
+          "options": [
+            "nosuid",
+            "noexec",
+            "nodev"
+          ]
+        },
+        {
+          "destination": "/dev",
+          "type": "tmpfs",
+          "source": "tmpfs",
+          "options": [
+            "nosuid",
+            "strictatime",
+            "mode=755",
+            "size=65536k"
+          ]
+        },
+        {
+          "destination": "/dev/pts",
+          "type": "devpts",
+          "source": "devpts",
+          "options": [
+            "nosuid",
+            "noexec",
+            "newinstance",
+            "ptmxmode=0666",
+            "mode=0620",
+            "gid=5"
+          ]
+        },
+        {
+          "destination": "/dev/mqueue",
+          "type": "mqueue",
+          "source": "mqueue",
+          "options": [
+            "nosuid",
+            "noexec",
+            "nodev"
+          ]
+        },
+        {
+          "destination": "/sys",
+          "type": "sysfs",
+          "source": "sysfs",
+          "options": [
+            "nosuid",
+            "noexec",
+            "nodev",
+            "ro"
+          ]
+        },
+        {
+          "destination": "/etc/resolv.conf",
+          "type": "bind",
+          "source": "/var/run/containers/storage/overlay-containers/d246438d95594e794d772dc94590fe96f95a4ec32aa99c9d46e74cef4664b3db/userdata/resolv.conf",
+          "options": [
+            "ro",
+            "bind",
+            "nodev",
+            "nosuid",
+            "noexec"
+          ]
+        },
+        {
+          "destination": "/dev/shm",
+          "type": "bind",
+          "source": "/var/run/containers/storage/overlay-containers/d246438d95594e794d772dc94590fe96f95a4ec32aa99c9d46e74cef4664b3db/userdata/shm",
+          "options": [
+            "rw",
+            "bind"
+          ]
+        },
+        {
+          "destination": "/etc/hostname",
+          "type": "bind",
+          "source": "/var/run/containers/storage/overlay-containers/d246438d95594e794d772dc94590fe96f95a4ec32aa99c9d46e74cef4664b3db/userdata/hostname",
+          "options": [
+            "ro",
+            "bind",
+            "nodev",
+            "nosuid",
+            "noexec"
+          ]
+        }
+      ],
+      "annotations": {
+        "io.kubernetes.pod.uid": "9db8ca51-6d54-4b79-a79e-bc14d70f5b79",
+        "io.kubernetes.pod.namespace": "default",
+        "io.kubernetes.cri-o.ContainerName": "k8s_POD_alpine-docker_default_9db8ca51-6d54-4b79-a79e-bc14d70f5b79_0",
+        "io.kubernetes.cri-o.PrivilegedRuntime": "false",
+        "io.kubernetes.cri-o.PortMappings": "[]",
+        "io.kubernetes.cri-o.MountPoint": "/var/lib/containers/storage/overlay/45aab846710e3cef92d9e2d39793865e49ae5735f1e8876131214c3c6a15474c/merged",
+        "io.kubernetes.cri-o.HostnamePath": "/var/run/containers/storage/overlay-containers/d246438d95594e794d772dc94590fe96f95a4ec32aa99c9d46e74cef4664b3db/userdata/hostname",
+        "io.kubernetes.cri-o.CNIResult": "{\"cniVersion\":\"0.4.0\",\"interfaces\":[{\"name\":\"cni0\",\"mac\":\"3a:4d:23:8d:d3:41\"},{\"name\":\"veth0167cc09\",\"mac\":\"22:b9:17:ef:ec:7c\"},{\"name\":\"eth0\",\"mac\":\"da:5a:80:ad:d1:03\",\"sandbox\":\"/var/run/netns/17c495fe-ef6f-472c-8c93-cdddf7f5c276\"}],\"ips\"
+:[{\"version\":\"4\",\"interface\":2,\"address\":\"10.244.0.8/24\",\"gateway\":\"10.244.0.1\"}],\"routes\":[{\"dst\":\"10.244.0.0/16\"},{\"dst\":\"0.0.0.0/0\",\"gw\":\"10.244.0.1\"}],\"dns\":{}}",
+        "io.kubernetes.cri-o.RuntimeHandler": "sysbox-runc",
+        "io.kubernetes.cri-o.HostName": "alpine-docker",
+        "io.kubernetes.cri-o.NamespaceOptions": "{}",
+        "io.kubernetes.cri-o.KubeName": "alpine-docker",
+        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Pod\",\"metadata\":{\"annotations\":{\"io.kubernetes.cri-o.userns-mode\":\"auto:size=65536\"},\"name\":\"alpine-docker\",\"namespace\":\"default\"},\"spec\":{\"containers\":[{\"args\":[\"-f\",\"/dev/null\"],\"command\":[\"t
+ail\"],\"image\":\"nestybox/alpine-docker\",\"name\":\"alpine-docker\"}],\"restartPolicy\":\"Never\",\"runtimeClassName\":\"sysbox-runc\",\"shareProcessNamespace\":true}}\n",
+        "io.kubernetes.cri-o.Annotations": "{\"kubectl.kubernetes.io/last-applied-configuration\":\"{\\\"apiVersion\\\":\\\"v1\\\",\\\"kind\\\":\\\"Pod\\\",\\\"metadata\\\":{\\\"annotations\\\":{\\\"io.kubernetes.cri-o.userns-mode\\\":\\\"auto:size=65536\\\"},\\\"name\\\":\\\"alpine-docker\\\",\\\"namespace\\\":\\\"d
+efault\\\"},\\\"spec\\\":{\\\"containers\\\":[{\\\"args\\\":[\\\"-f\\\",\\\"/dev/null\\\"],\\\"command\\\":[\\\"tail\\\"],\\\"image\\\":\\\"nestybox/alpine-docker\\\",\\\"name\\\":\\\"alpine-docker\\\"}],\\\"restartPolicy\\\":\\\"Never\\\",\\\"runtimeClassName\\\":\\\"sysbox-runc\\\",\\\"shareProcessNamespace\\\":tru
+e}}\\n\",\"io.kubernetes.cri-o.userns-mode\":\"auto:size=65536\",\"kubernetes.io/config.seen\":\"2021-03-02T04:47:50.210875054Z\",\"kubernetes.io/config.source\":\"api\"}",
+        "io.kubernetes.cri-o.LogPath": "/var/log/pods/default_alpine-docker_9db8ca51-6d54-4b79-a79e-bc14d70f5b79/d246438d95594e794d772dc94590fe96f95a4ec32aa99c9d46e74cef4664b3db.log",
+        "io.kubernetes.cri-o.ContainerID": "d246438d95594e794d772dc94590fe96f95a4ec32aa99c9d46e74cef4664b3db",
+        "io.kubernetes.container.name": "POD",
+        "io.kubernetes.cri-o.SeccompProfilePath": "runtime/default",
+        "io.kubernetes.cri-o.Name": "k8s_alpine-docker_default_9db8ca51-6d54-4b79-a79e-bc14d70f5b79_0",
+        "io.kubernetes.cri-o.ShmPath": "/var/run/containers/storage/overlay-containers/d246438d95594e794d772dc94590fe96f95a4ec32aa99c9d46e74cef4664b3db/userdata/shm",
+        "io.kubernetes.pod.name": "alpine-docker",
+        "io.kubernetes.cri-o.ResolvPath": "/var/run/containers/storage/overlay-containers/d246438d95594e794d772dc94590fe96f95a4ec32aa99c9d46e74cef4664b3db/userdata/resolv.conf",
+        "io.container.manager": "cri-o",
+        "io.kubernetes.cri-o.Metadata": "{\"name\":\"alpine-docker\",\"uid\":\"9db8ca51-6d54-4b79-a79e-bc14d70f5b79\",\"namespace\":\"default\"}",
+        "io.kubernetes.cri-o.Labels": "{\"io.kubernetes.pod.uid\":\"9db8ca51-6d54-4b79-a79e-bc14d70f5b79\",\"io.kubernetes.pod.namespace\":\"default\",\"io.kubernetes.pod.name\":\"alpine-docker\",\"io.kubernetes.container.name\":\"POD\"}",
+        "io.kubernetes.cri-o.Image": "k8s.gcr.io/pause:3.2",
+        "io.kubernetes.cri-o.SandboxID": "d246438d95594e794d772dc94590fe96f95a4ec32aa99c9d46e74cef4664b3db",
+        "io.kubernetes.cri-o.userns-mode": "auto:size=65536",
+        "io.kubernetes.cri-o.IP.0": "10.244.0.8",
+        "io.kubernetes.cri-o.Created": "2021-03-02T04:47:50.725805878Z",
+        "io.kubernetes.cri-o.CgroupParent": "/kubepods/besteffort/pod9db8ca51-6d54-4b79-a79e-bc14d70f5b79",
+        "kubernetes.io/config.source": "api",
+        "io.kubernetes.cri-o.Namespace": "default",
+        "io.kubernetes.cri-o.ContainerType": "sandbox",
+        "io.kubernetes.cri-o.HostNetwork": "false",
+        "kubernetes.io/config.seen": "2021-03-02T04:47:50.210875054Z"
+      },
+      "linux": {
+        "uidMappings": [
+          {
+            "containerID": 0,
+            "hostID": 296608,
+            "size": 65536
+          }
+        ],
+        "gidMappings": [
+          {
+            "containerID": 0,
+            "hostID": 296608,
+            "size": 65536
+          }
+        ],
+        "resources": {
+          "devices": [
+            {
+              "allow": false,
+              "access": "rwm"
+            }
+          ],
+          "cpu": {
+            "shares": 2
+          }
+        },
+        "cgroupsPath": "/kubepods/besteffort/pod9db8ca51-6d54-4b79-a79e-bc14d70f5b79/crio-d246438d95594e794d772dc94590fe96f95a4ec32aa99c9d46e74cef4664b3db",
+        "namespaces": [
+          {
+            "type": "pid"
+          },
+          {
+            "type": "network",
+            "path": "/var/run/netns/17c495fe-ef6f-472c-8c93-cdddf7f5c276"
+          },
+          {
+            "type": "ipc",
+            "path": "/var/run/ipcns/17c495fe-ef6f-472c-8c93-cdddf7f5c276"
+          },
+          {
+            "type": "uts",
+            "path": "/var/run/utsns/17c495fe-ef6f-472c-8c93-cdddf7f5c276"
+          },
+          {
+            "type": "mount"
+          },
+          {
+            "type": "user",
+            "path": "/var/run/userns/17c495fe-ef6f-472c-8c93-cdddf7f5c276"
+          }
+        ],
+        "seccomp": {
+          "defaultAction": "SCMP_ACT_ERRNO",
+          "architectures": [
+            "SCMP_ARCH_X86_64",
+            "SCMP_ARCH_X86",
+            "SCMP_ARCH_X32"
+          ],
+          "syscalls": [
+            {
+              "names": [
+                "_llseek",
+                "_newselect",
+                "accept",
+                "accept4",
+                "access",
+                "adjtimex",
+                "alarm",
+                "bind",
+                "brk",
+                "capget",
+                "capset",
+                "chdir",
+                "chmod",
+                "chown",
+                "chown32",
+                "clock_getres",
+                "clock_gettime",
+                "clock_nanosleep",
+                "close",
+                "connect",
+                "copy_file_range",
+                "creat",
+                "dup",
+                "dup2",
+                "dup3",
+                "epoll_create",
+                "epoll_create1",
+                "epoll_ctl",
+                "epoll_ctl_old",
+                "epoll_pwait",
+                "epoll_wait",
+                "epoll_wait_old",
+                "eventfd",
+                "eventfd2",
+                "execve",
+                "execveat",
+                "exit",
+                "exit_group",
+                "faccessat",
+                "fadvise64",
+                "fadvise64_64",
+                "fallocate",
+                "fanotify_mark",
+                "fchdir",
+                "fchmod",
+                "fchmodat",
+                "fchown",
+                "fchown32",
+                "fchownat",
+                "fcntl",
+                "fcntl64",
+                "fdatasync",
+                "fgetxattr",
+                "flistxattr",
+                "flock",
+                "fork",
+                "fremovexattr",
+                "fsetxattr",
+                "fstat",
+                "fstat64",
+                "fstatat64",
+                "fstatfs",
+                "fstatfs64",
+                "fsync",
+                "ftruncate",
+                "ftruncate64",
+                "futex",
+                "futimesat",
+                "get_robust_list",
+                "get_thread_area",
+                "getcpu",
+                "getcwd",
+                "getdents",
+                "getdents64",
+                "getegid",
+                "getegid32",
+                "geteuid",
+                "geteuid32",
+                "getgid",
+                "getgid32",
+                "getgroups",
+                "getgroups32",
+                "getitimer",
+                "getpeername",
+                "getpgid",
+                "getpgrp",
+                "getpid",
+                "getppid",
+                "getpriority",
+                "getrandom",
+                "getresgid",
+                "getresgid32",
+                "getresuid",
+                "getresuid32",
+                "getrlimit",
+                "getrusage",
+                "getsid",
+                "getsockname",
+                "getsockopt",
+                "gettid",
+                "gettimeofday",
+                "getuid",
+                "getuid32",
+                "getxattr",
+                "inotify_add_watch",
+                "inotify_init",
+                "inotify_init1",
+                "inotify_rm_watch",
+                "io_cancel",
+                "io_destroy",
+                "io_getevents",
+                "io_setup",
+                "io_submit",
+                "ioctl",
+                "ioprio_get",
+                "ioprio_set",
+                "ipc",
+                "kill",
+                "lchown",
+                "lchown32",
+                "lgetxattr",
+                "link",
+                "linkat",
+                "listen",
+                "listxattr",
+                "llistxattr",
+                "lremovexattr",
+                "lseek",
+                "lsetxattr",
+                "lstat",
+                "lstat64",
+                "madvise",
+                "memfd_create",
+                "mincore",
+                "mkdir",
+                "mkdirat",
+                "mknod",
+                "mknodat",
+                "mlock",
+                "mlock2",
+                "mlockall",
+                "mmap",
+                "mmap2",
+                "mount",
+                "mprotect",
+                "mq_getsetattr",
+                "mq_notify",
+                "mq_open",
+                "mq_timedreceive",
+                "mq_timedsend",
+                "mq_unlink",
+                "mremap",
+                "msgctl",
+                "msgget",
+                "msgrcv",
+                "msgsnd",
+                "msync",
+                "munlock",
+                "munlockall",
+                "munmap",
+                "name_to_handle_at",
+                "nanosleep",
+                "newfstatat",
+                "open",
+                "openat",
+                "pause",
+                "pipe",
+                "pipe2",
+                "poll",
+                "ppoll",
+                "prctl",
+                "pread64",
+                "preadv",
+                "preadv2",
+                "prlimit64",
+                "pselect6",
+                "pwrite64",
+                "pwritev",
+                "pwritev2",
+                "read",
+                "readahead",
+                "readlink",
+                "readlinkat",
+                "readv",
+                "reboot",
+                "recv",
+                "recvfrom",
+                "recvmmsg",
+                "recvmsg",
+                "remap_file_pages",
+                "removexattr",
+                "rename",
+                "renameat",
+                "renameat2",
+                "restart_syscall",
+                "rmdir",
+                "rt_sigaction",
+                "rt_sigpending",
+                "rt_sigprocmask",
+                "rt_sigqueueinfo",
+                "rt_sigreturn",
+                "rt_sigsuspend",
+                "rt_sigtimedwait",
+                "rt_tgsigqueueinfo",
+                "sched_get_priority_max",
+                "sched_get_priority_min",
+                "sched_getaffinity",
+                "sched_getattr",
+                "sched_getparam",
+                "sched_getscheduler",
+                "sched_rr_get_interval",
+                "sched_setaffinity",
+                "sched_setattr",
+                "sched_setparam",
+                "sched_setscheduler",
+                "sched_yield",
+                "seccomp",
+                "select",
+                "semctl",
+                "semget",
+                "semop",
+                "semtimedop",
+                "send",
+                "sendfile",
+                "sendfile64",
+                "sendmmsg",
+                "sendmsg",
+                "sendto",
+                "set_robust_list",
+                "set_thread_area",
+                "set_tid_address",
+                "setfsgid",
+                "setfsgid32",
+                "setfsuid",
+                "setfsuid32",
+                "setgid",
+                "setgid32",
+                "setgroups",
+                "setgroups32",
+                "setitimer",
+                "setpgid",
+                "setpriority",
+                "setregid",
+                "setregid32",
+                "setresgid",
+                "setresgid32",
+                "setresuid",
+                "setresuid32",
+                "setreuid",
+                "setreuid32",
+                "setrlimit",
+                "setsid",
+                "setsockopt",
+                "setuid",
+                "setuid32",
+                "setxattr",
+                "shmat",
+                "shmctl",
+                "shmdt",
+                "shmget",
+                "shutdown",
+                "sigaltstack",
+                "signalfd",
+                "signalfd4",
+                "sigreturn",
+                "socketcall",
+                "socketpair",
+                "splice",
+                "stat",
+                "stat64",
+                "statfs",
+                "statfs64",
+                "statx",
+                "symlink",
+                "symlinkat",
+                "sync",
+                "sync_file_range",
+                "syncfs",
+                "sysinfo",
+                "syslog",
+                "tee",
+                "tgkill",
+                "time",
+                "timer_create",
+                "timer_delete",
+                "timer_getoverrun",
+                "timer_gettime",
+                "timer_settime",
+                "timerfd_create",
+                "timerfd_gettime",
+                "timerfd_settime",
+                "times",
+                "tkill",
+                "truncate",
+                "truncate64",
+                "ugetrlimit",
+                "umask",
+                "umount",
+                "umount2",
+                "uname",
+                "unlink",
+                "unlinkat",
+                "unshare",
+                "utime",
+                "utimensat",
+                "utimes",
+                "vfork",
+                "vmsplice",
+                "wait4",
+                "waitid",
+                "waitpid",
+                "write",
+                "writev"
+              ],
+              "action": "SCMP_ACT_ALLOW"
+            },
+            {
+              "names": [
+                "personality"
+              ],
+              "action": "SCMP_ACT_ALLOW",
+              "args": [
+                {
+                  "index": 0,
+                  "value": 0,
+                  "op": "SCMP_CMP_EQ"
+                }
+              ]
+            },
+            {
+              "names": [
+                "personality"
+              ],
+              "action": "SCMP_ACT_ALLOW",
+              "args": [
+                {
+                  "index": 0,
+                  "value": 8,
+                  "op": "SCMP_CMP_EQ"
+                }
+              ]
+            },
+            {
+              "names": [
+                "personality"
+              ],
+              "action": "SCMP_ACT_ALLOW",
+              "args": [
+                {
+                  "index": 0,
+                  "value": 131072,
+                  "op": "SCMP_CMP_EQ"
+                }
+              ]
+            },
+            {
+              "names": [
+                "personality"
+              ],
+              "action": "SCMP_ACT_ALLOW",
+              "args": [
+                {
+                  "index": 0,
+                  "value": 131080,
+                  "op": "SCMP_CMP_EQ"
+                }
+              ]
+            },
+            {
+              "names": [
+                "personality"
+              ],
+              "action": "SCMP_ACT_ALLOW",
+              "args": [
+                {
+                  "index": 0,
+                  "value": 4294967295,
+                  "op": "SCMP_CMP_EQ"
+                }
+              ]
+            },
+            {
+              "names": [
+                "arch_prctl"
+              ],
+              "action": "SCMP_ACT_ALLOW"
+            },
+            {
+              "names": [
+                "modify_ldt"
+              ],
+              "action": "SCMP_ACT_ALLOW"
+            },
+            {
+              "names": [
+                "clone"
+              ],
+              "action": "SCMP_ACT_ALLOW",
+              "args": [
+                {
+                  "index": 0,
+                  "value": 2080505856,
+                  "op": "SCMP_CMP_MASKED_EQ"
+                }
+              ]
+            },
+            {
+              "names": [
+                "socket"
+              ],
+              "action": "SCMP_ACT_ERRNO",
+              "errnoRet": 22,
+              "args": [
+                {
+                  "index": 0,
+                  "value": 16,
+                  "op": "SCMP_CMP_EQ"
+                },
+                {
+                  "index": 2,
+                  "value": 9,
+                  "op": "SCMP_CMP_EQ"
+                }
+              ]
+            },
+            {
+              "names": [
+                "socket"
+              ],
+              "action": "SCMP_ACT_ALLOW",
+              "args": [
+                {
+                  "index": 2,
+                  "value": 9,
+                  "op": "SCMP_CMP_NE"
+                }
+              ]
+            },
+            {
+              "names": [
+                "socket"
+              ],
+              "action": "SCMP_ACT_ALLOW",
+              "args": [
+                {
+                  "index": 0,
+                  "value": 16,
+                  "op": "SCMP_CMP_NE"
+                }
+              ]
+            },
+            {
+              "names": [
+                "socket"
+              ],
+              "action": "SCMP_ACT_ALLOW",
+              "args": [
+                {
+                  "index": 2,
+                  "value": 9,
+                  "op": "SCMP_CMP_NE"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}
+
+
+## K8s MAIN CONTAINER
+
+cesar@k8s-node:~/nestybox/sysbox-internal/experiments/sysbox-pods/manifests$ sudo crictl inspect 44f2645283046
+{
+  "status": {
+    "id": "44f264528304664116d7e4ef797a5f0254dd0eca25171cf1dc41b5441888ed5d",
+    "metadata": {
+      "attempt": 0,
+      "name": "alpine-docker"
+    },
+    "state": "CONTAINER_RUNNING",
+    "createdAt": "2021-03-02T04:47:54.517354665Z",
+    "startedAt": "2021-03-02T04:47:54.595157103Z",
+    "finishedAt": "1970-01-01T00:00:00Z",
+    "exitCode": 0,
+    "image": {
+      "annotations": {},
+      "image": "docker.io/nestybox/alpine-docker:latest"
+    },
+    "imageRef": "docker.io/nestybox/alpine-docker@sha256:df9dcb5078f6c1c54cb90e0ffbe2c7f8badeac1ede7f4c3d4b000f94885db080",
+    "reason": "",
+    "message": "",
+    "labels": {
+      "io.kubernetes.container.name": "alpine-docker",
+      "io.kubernetes.pod.name": "alpine-docker",
+      "io.kubernetes.pod.namespace": "default",
+      "io.kubernetes.pod.uid": "9db8ca51-6d54-4b79-a79e-bc14d70f5b79"
+    },
+    "annotations": {
+      "io.kubernetes.container.hash": "df7057a1",
+      "io.kubernetes.container.restartCount": "0",
+      "io.kubernetes.container.terminationMessagePath": "/dev/termination-log",
+      "io.kubernetes.container.terminationMessagePolicy": "File",
+      "io.kubernetes.pod.terminationGracePeriod": "30"
+    },
+    "mounts": [
+      {
+        "containerPath": "/etc/hosts",
+        "hostPath": "/var/lib/kubelet/pods/9db8ca51-6d54-4b79-a79e-bc14d70f5b79/etc-hosts",
+        "propagation": "PROPAGATION_PRIVATE",
+        "readonly": false,
+        "selinuxRelabel": false
+      },
+      {
+        "containerPath": "/dev/termination-log",
+        "hostPath": "/var/lib/kubelet/pods/9db8ca51-6d54-4b79-a79e-bc14d70f5b79/containers/alpine-docker/94a81e07",
+        "propagation": "PROPAGATION_PRIVATE",
+        "readonly": false,
+        "selinuxRelabel": false
+      },
+      {
+        "containerPath": "/var/run/secrets/kubernetes.io/serviceaccount",
+        "hostPath": "/var/lib/kubelet/pods/9db8ca51-6d54-4b79-a79e-bc14d70f5b79/volumes/kubernetes.io~secret/default-token-txkzb",
+        "propagation": "PROPAGATION_PRIVATE",
+        "readonly": true,
+        "selinuxRelabel": false
+      }
+    ],
+    "logPath": "/var/log/pods/default_alpine-docker_9db8ca51-6d54-4b79-a79e-bc14d70f5b79/alpine-docker/0.log"
+  },
+  "info": {
+    "sandboxID": "d246438d95594e794d772dc94590fe96f95a4ec32aa99c9d46e74cef4664b3db",
+    "pid": 1639193,
+    "runtimeSpec": {
+      "ociVersion": "1.0.2-dev",
+      "process": {
+        "user": {
+          "uid": 0,
+          "gid": 0,
+          "additionalGids": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            6,
+            10,
+            11,
+            20,
+            26,
+            27
+          ]
+        },
+        "args": [
+          "tail",
+          "-f",
+          "/dev/null"
+        ],
+        "env": [
+          "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+          "TERM=xterm",
+          "HOSTNAME=alpine-docker",
+          "KUBERNETES_PORT=tcp://10.96.0.1:443",
+          "KUBERNETES_PORT_443_TCP=tcp://10.96.0.1:443",
+          "KUBERNETES_PORT_443_TCP_PROTO=tcp",
+          "KUBERNETES_PORT_443_TCP_PORT=443",
+          "KUBERNETES_PORT_443_TCP_ADDR=10.96.0.1",
+          "KUBERNETES_SERVICE_HOST=10.96.0.1",
+          "KUBERNETES_SERVICE_PORT=443",
+          "KUBERNETES_SERVICE_PORT_HTTPS=443",
+          "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+        ],
+        "cwd": "/",
+        "capabilities": {
+          "bounding": [
+            "CAP_CHOWN",
+            "CAP_DAC_OVERRIDE",
+            "CAP_FSETID",
+            "CAP_FOWNER",
+            "CAP_SETGID",
+            "CAP_SETUID",
+            "CAP_SETPCAP",
+            "CAP_NET_BIND_SERVICE",
+            "CAP_KILL"
+          ],
+          "effective": [
+            "CAP_CHOWN",
+            "CAP_DAC_OVERRIDE",
+            "CAP_FSETID",
+            "CAP_FOWNER",
+            "CAP_SETGID",
+            "CAP_SETUID",
+            "CAP_SETPCAP",
+            "CAP_NET_BIND_SERVICE",
+            "CAP_KILL"
+          ],
+          "inheritable": [
+            "CAP_CHOWN",
+            "CAP_DAC_OVERRIDE",
+            "CAP_FSETID",
+            "CAP_FOWNER",
+            "CAP_SETGID",
+            "CAP_SETUID",
+            "CAP_SETPCAP",
+            "CAP_NET_BIND_SERVICE",
+            "CAP_KILL"
+          ],
+          "permitted": [
+            "CAP_CHOWN",
+            "CAP_DAC_OVERRIDE",
+            "CAP_FSETID",
+            "CAP_FOWNER",
+            "CAP_SETGID",
+            "CAP_SETUID",
+            "CAP_SETPCAP",
+            "CAP_NET_BIND_SERVICE",
+            "CAP_KILL"
+          ]
+        },
+        "oomScoreAdj": 1000
+      },
+      "root": {
+        "path": "/var/lib/containers/storage/overlay/6310208d035791e42b3ad585d9f609c91b15c08157a2f5bee5231f1cfbd35147/merged"
+      },
+      "hostname": "alpine-docker",
+      "mounts": [
+        {
+          "destination": "/proc",
+          "type": "proc",
+          "source": "proc",
+          "options": [
+            "nosuid",
+            "noexec",
+            "nodev"
+          ]
+        },
+        {
+          "destination": "/dev",
+          "type": "tmpfs",
+          "source": "tmpfs",
+          "options": [
+            "nosuid",
+            "strictatime",
+            "mode=755",
+            "size=65536k"
+          ]
+        },
+        {
+          "destination": "/dev/pts",
+          "type": "devpts",
+          "source": "devpts",
+          "options": [
+            "nosuid",
+            "noexec",
+            "newinstance",
+            "ptmxmode=0666",
+            "mode=0620",
+            "gid=5"
+          ]
+        },
+        {
+          "destination": "/dev/mqueue",
+          "type": "mqueue",
+          "source": "mqueue",
+          "options": [
+            "nosuid",
+            "noexec",
+            "nodev"
+          ]
+        },
+        {
+          "destination": "/sys",
+          "type": "sysfs",
+          "source": "sysfs",
+          "options": [
+            "nosuid",
+            "noexec",
+            "nodev",
+            "ro"
+          ]
+        },
+        {
+          "destination": "/sys/fs/cgroup",
+          "type": "cgroup",
+          "source": "cgroup",
+          "options": [
+            "nosuid",
+            "noexec",
+            "nodev",
+            "relatime",
+            "ro"
+          ]
+        },
+        {
+          "destination": "/dev/shm",
+          "type": "bind",
+          "source": "/var/run/containers/storage/overlay-containers/d246438d95594e794d772dc94590fe96f95a4ec32aa99c9d46e74cef4664b3db/userdata/shm",
+          "options": [
+            "rw",
+            "bind"
+          ]
+        },
+        {
+          "destination": "/etc/resolv.conf",
+          "type": "bind",
+          "source": "/var/run/containers/storage/overlay-containers/d246438d95594e794d772dc94590fe96f95a4ec32aa99c9d46e74cef4664b3db/userdata/resolv.conf",
+          "options": [
+            "rw",
+            "bind",
+            "nodev",
+            "nosuid",
+            "noexec"
+          ]
+        },
+        {
+          "destination": "/etc/hostname",
+          "type": "bind",
+          "source": "/var/run/containers/storage/overlay-containers/d246438d95594e794d772dc94590fe96f95a4ec32aa99c9d46e74cef4664b3db/userdata/hostname",
+          "options": [
+            "rw",
+            "bind"
+          ]
+        },
+        {
+          "destination": "/etc/hosts",
+          "type": "bind",
+          "source": "/var/lib/kubelet/pods/9db8ca51-6d54-4b79-a79e-bc14d70f5b79/etc-hosts",
+          "options": [
+            "rw",
+            "rbind",
+            "rprivate",
+            "bind"
+          ]
+        },
+        {
+          "destination": "/dev/termination-log",
+          "type": "bind",
+          "source": "/var/lib/kubelet/pods/9db8ca51-6d54-4b79-a79e-bc14d70f5b79/containers/alpine-docker/94a81e07",
+          "options": [
+            "rw",
+            "rbind",
+            "rprivate",
+            "bind"
+          ]
+        },
+        {
+          "destination": "/var/run/secrets/kubernetes.io/serviceaccount",
+          "type": "bind",
+          "source": "/var/lib/kubelet/pods/9db8ca51-6d54-4b79-a79e-bc14d70f5b79/volumes/kubernetes.io~secret/default-token-txkzb",
+          "options": [
+            "ro",
+            "rbind",
+            "rprivate",
+            "bind"
+          ]
+        }
+      ],
+      "annotations": {
+        "io.kubernetes.cri-o.SandboxName": "k8s_alpine-docker_default_9db8ca51-6d54-4b79-a79e-bc14d70f5b79_0",
+        "io.kubernetes.cri-o.StdinOnce": "false",
+        "io.kubernetes.cri-o.TTY": "false",
+        "io.kubernetes.cri-o.Annotations": "{\"io.kubernetes.container.hash\":\"df7057a1\",\"io.kubernetes.container.restartCount\":\"0\",\"io.kubernetes.container.terminationMessagePath\":\"/dev/termination-log\",\"io.kubernetes.container.terminationMessagePolicy\":\"File\",\"io.kubernetes.pod.terminationGracePeriod
+\":\"30\"}",
+        "io.kubernetes.container.restartCount": "0",
+        "io.kubernetes.cri-o.ImageName": "docker.io/nestybox/alpine-docker:latest",
+        "io.kubernetes.cri-o.ImageRef": "41c78e63202a8a71e53969ee59ca2ac84387885dfaaf5873fa3e86a3404af368",
+        "io.kubernetes.cri-o.LogPath": "/var/log/pods/default_alpine-docker_9db8ca51-6d54-4b79-a79e-bc14d70f5b79/alpine-docker/0.log",
+        "io.container.manager": "cri-o",
+        "io.kubernetes.cri-o.MountPoint": "/var/lib/containers/storage/overlay/6310208d035791e42b3ad585d9f609c91b15c08157a2f5bee5231f1cfbd35147/merged",
+        "io.kubernetes.pod.namespace": "default",
+        "io.kubernetes.cri-o.Image": "docker.io/nestybox/alpine-docker@sha256:df9dcb5078f6c1c54cb90e0ffbe2c7f8badeac1ede7f4c3d4b000f94885db080",
+        "io.kubernetes.cri-o.ContainerID": "44f264528304664116d7e4ef797a5f0254dd0eca25171cf1dc41b5441888ed5d",
+        "io.kubernetes.cri-o.ContainerType": "container",
+        "io.kubernetes.pod.name": "alpine-docker",
+        "io.kubernetes.pod.uid": "9db8ca51-6d54-4b79-a79e-bc14d70f5b79",
+        "io.kubernetes.cri-o.IP.0": "10.244.0.8",
+        "io.kubernetes.cri-o.SandboxID": "d246438d95594e794d772dc94590fe96f95a4ec32aa99c9d46e74cef4664b3db",
+        "io.kubernetes.cri-o.Created": "2021-03-02T04:47:54.02009174Z",
+        "io.kubernetes.cri-o.Metadata": "{\"name\":\"alpine-docker\"}",
+        "io.kubernetes.cri-o.Volumes": "[{\"container_path\":\"/etc/hosts\",\"host_path\":\"/var/lib/kubelet/pods/9db8ca51-6d54-4b79-a79e-bc14d70f5b79/etc-hosts\",\"readonly\":false},{\"container_path\":\"/dev/termination-log\",\"host_path\":\"/var/lib/kubelet/pods/9db8ca51-6d54-4b79-a79e-bc14d70f5b79/containers/alpi
+ne-docker/94a81e07\",\"readonly\":false},{\"container_path\":\"/var/run/secrets/kubernetes.io/serviceaccount\",\"host_path\":\"/var/lib/kubelet/pods/9db8ca51-6d54-4b79-a79e-bc14d70f5b79/volumes/kubernetes.io~secret/default-token-txkzb\",\"readonly\":true}]",
+        "io.kubernetes.container.terminationMessagePath": "/dev/termination-log",
+        "io.kubernetes.container.name": "alpine-docker",
+        "io.kubernetes.cri-o.Name": "k8s_alpine-docker_alpine-docker_default_9db8ca51-6d54-4b79-a79e-bc14d70f5b79_0",
+        "io.kubernetes.pod.terminationGracePeriod": "30",
+        "io.kubernetes.cri-o.ResolvPath": "/var/run/containers/storage/overlay-containers/d246438d95594e794d772dc94590fe96f95a4ec32aa99c9d46e74cef4664b3db/userdata/resolv.conf",
+        "io.kubernetes.cri-o.Labels": "{\"io.kubernetes.container.name\":\"alpine-docker\",\"io.kubernetes.pod.name\":\"alpine-docker\",\"io.kubernetes.pod.namespace\":\"default\",\"io.kubernetes.pod.uid\":\"9db8ca51-6d54-4b79-a79e-bc14d70f5b79\"}",
+        "io.kubernetes.container.hash": "df7057a1",
+        "io.kubernetes.cri-o.Stdin": "false",
+        "io.kubernetes.cri-o.SeccompProfilePath": "",
+        "io.kubernetes.container.terminationMessagePolicy": "File"
+      },
+      "linux": {
+        "uidMappings": [
+          {
+            "containerID": 0,
+            "hostID": 296608,
+            "size": 65536
+          }
+        ],
+        "gidMappings": [
+          {
+            "containerID": 0,
+            "hostID": 296608,
+            "size": 65536
+          }
+        ],
+        "resources": {
+          "devices": [
+            {
+              "allow": false,
+              "access": "rwm"
+            }
+          ],
+          "cpu": {
+            "shares": 2,
+            "quota": 0,
+            "period": 100000
+          },
+          "pids": {
+            "limit": 1024
+          },
+          "hugepageLimits": [
+            {
+              "pageSize": "1GB",
+              "limit": 0
+            },
+            {
+              "pageSize": "2MB",
+              "limit": 0
+            }
+          ]
+        },
+        "cgroupsPath": "/kubepods/besteffort/pod9db8ca51-6d54-4b79-a79e-bc14d70f5b79/crio-44f264528304664116d7e4ef797a5f0254dd0eca25171cf1dc41b5441888ed5d",
+        "namespaces": [
+          {
+            "type": "pid",
+            "path": "/proc/1639050/ns/pid"
+          },
+          {
+            "type": "network",
+            "path": "/var/run/netns/17c495fe-ef6f-472c-8c93-cdddf7f5c276"
+          },
+          {
+            "type": "ipc",
+            "path": "/var/run/ipcns/17c495fe-ef6f-472c-8c93-cdddf7f5c276"
+          },
+          {
+            "type": "uts",
+            "path": "/var/run/utsns/17c495fe-ef6f-472c-8c93-cdddf7f5c276"
+          },
+          {
+            "type": "mount"
+          },
+          {
+            "type": "user",
+            "path": "/var/run/userns/17c495fe-ef6f-472c-8c93-cdddf7f5c276"
+          }
+        ],
+        "maskedPaths": [
+          "/proc/acpi",
+          "/proc/kcore",
+          "/proc/keys",
+          "/proc/latency_stats",
+          "/proc/timer_list",
+          "/proc/timer_stats",
+          "/proc/sched_debug",
+          "/proc/scsi",
+          "/sys/firmware"
+        ],
+        "readonlyPaths": [
+          "/proc/asound",
+          "/proc/bus",
+          "/proc/fs",
+          "/proc/irq",
+          "/proc/sys",
+          "/proc/sysrq-trigger"
+        ]
+      }
+    },
+    "privileged": false
+  }
+}

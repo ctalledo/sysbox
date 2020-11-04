@@ -1,0 +1,564 @@
+# CRICTL INSPECT
+
+## CRI-O POD (pause container)
+
+cesar@k8s-node:~/nestybox/sysbox-internal/experiments/sysbox-pods/crictl/test-sysbox-pod$ sudo crictl inspectp 28bc7b3fa3887
+{
+  "status": {
+    "id": "28bc7b3fa38873c0023cea9fc06a5d5a5eb10927062d4a8c9b0466803ad34609",
+    "metadata": {
+      "attempt": 1,
+      "name": "nginx-sandbox",
+      "namespace": "default",
+      "uid": "sysbox-pod"
+    },
+    "state": "SANDBOX_READY",
+    "createdAt": "2021-03-02T05:02:04.784870926Z",
+    "network": {
+      "additionalIps": [],
+      "ip": "10.244.0.2"
+    },
+    "linux": {
+      "namespaces": {
+        "options": {
+          "ipc": "POD",
+          "network": "POD",
+          "pid": "POD",
+          "targetId": ""
+        }
+      }
+    },
+    "labels": {},
+    "annotations": {
+      "io.kubernetes.cri-o.userns-mode": "auto:size=65536"
+    },
+    "runtimeHandler": ""
+  },
+  "info": {
+    "image": "k8s.gcr.io/pause:3.2",
+    "pid": 1647696,
+    "runtimeSpec": {
+      "ociVersion": "1.0.2-dev",
+      "process": {
+        "user": {
+          "uid": 0,
+          "gid": 0
+        },
+        "args": [
+          "/pause"
+        ],
+        "env": [
+          "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+          "TERM=xterm"
+        ],
+        "cwd": "/",
+        "capabilities": {
+          "bounding": [
+            "CAP_CHOWN",
+            "CAP_DAC_OVERRIDE",
+            "CAP_FSETID",
+            "CAP_FOWNER",
+            "CAP_SETGID",
+            "CAP_SETUID",
+            "CAP_SETPCAP",
+            "CAP_NET_BIND_SERVICE",
+            "CAP_KILL"
+          ],
+          "effective": [
+            "CAP_CHOWN",
+            "CAP_DAC_OVERRIDE",
+            "CAP_FSETID",
+            "CAP_FOWNER",
+            "CAP_SETGID",
+            "CAP_SETUID",
+            "CAP_SETPCAP",
+            "CAP_NET_BIND_SERVICE",
+            "CAP_KILL"
+          ],
+          "inheritable": [
+            "CAP_CHOWN",
+            "CAP_DAC_OVERRIDE",
+            "CAP_FSETID",
+            "CAP_FOWNER",
+            "CAP_SETGID",
+            "CAP_SETUID",
+            "CAP_SETPCAP",
+            "CAP_NET_BIND_SERVICE",
+            "CAP_KILL"
+          ],
+          "permitted": [
+            "CAP_CHOWN",
+            "CAP_DAC_OVERRIDE",
+            "CAP_FSETID",
+            "CAP_FOWNER",
+            "CAP_SETGID",
+            "CAP_SETUID",
+            "CAP_SETPCAP",
+            "CAP_NET_BIND_SERVICE",
+            "CAP_KILL"
+          ]
+        },
+        "oomScoreAdj": -998
+      },
+      "root": {
+        "path": "/var/lib/containers/storage/overlay/82d3ffc34ca5568273b0d81c9f474aad08a8ab26d080cdc5016de5920ba09755/merged",
+        "readonly": true
+      },
+      "hostname": "28bc7b3fa388",
+      "mounts": [
+        {
+          "destination": "/proc",
+          "type": "proc",
+          "source": "proc",
+          "options": [
+            "nosuid",
+            "noexec",
+            "nodev"
+          ]
+        },
+        {
+          "destination": "/dev",
+          "type": "tmpfs",
+          "source": "tmpfs",
+          "options": [
+            "nosuid",
+            "strictatime",
+            "mode=755",
+            "size=65536k"
+          ]
+        },
+        {
+          "destination": "/dev/pts",
+          "type": "devpts",
+          "source": "devpts",
+          "options": [
+            "nosuid",
+            "noexec",
+            "newinstance",
+            "ptmxmode=0666",
+            "mode=0620",
+            "gid=5"
+          ]
+        },
+        {
+          "destination": "/dev/mqueue",
+          "type": "mqueue",
+          "source": "mqueue",
+          "options": [
+            "nosuid",
+            "noexec",
+            "nodev"
+          ]
+        },
+        {
+          "destination": "/sys",
+          "type": "sysfs",
+          "source": "sysfs",
+          "options": [
+            "nosuid",
+            "noexec",
+            "nodev",
+            "ro"
+          ]
+        },
+        {
+          "destination": "/dev/shm",
+          "type": "bind",
+          "source": "/var/run/containers/storage/overlay-containers/28bc7b3fa38873c0023cea9fc06a5d5a5eb10927062d4a8c9b0466803ad34609/userdata/shm",
+          "options": [
+            "rw",
+            "bind"
+          ]
+        },
+        {
+          "destination": "/etc/hostname",
+          "type": "bind",
+          "source": "/var/run/containers/storage/overlay-containers/28bc7b3fa38873c0023cea9fc06a5d5a5eb10927062d4a8c9b0466803ad34609/userdata/hostname",
+          "options": [
+            "ro",
+            "bind",
+            "nodev",
+            "nosuid",
+            "noexec"
+          ]
+        }
+      ],
+      "annotations": {
+        "io.kubernetes.cri-o.CNIResult": "{\"cniVersion\":\"0.4.0\",\"interfaces\":[{\"name\":\"cni0\",\"mac\":\"3a:4d:23:8d:d3:41\"},{\"name\":\"veth38849efd\",\"mac\":\"ae:ea:70:f2:c5:8c\"},{\"name\":\"eth0\",\"mac\":\"7a:b0:08:87:39:a5\",\"sandbox\":\"/var/run/netns/36dc92f0-0261-4af0-8969-e92b788f1f1b\"}],\"ips\"
+:[{\"version\":\"4\",\"interface\":2,\"address\":\"10.244.0.2/24\",\"gateway\":\"10.244.0.1\"}],\"routes\":[{\"dst\":\"10.244.0.0/16\"},{\"dst\":\"0.0.0.0/0\",\"gw\":\"10.244.0.1\"}],\"dns\":{}}",
+        "io.kubernetes.cri-o.Image": "k8s.gcr.io/pause:3.2",
+        "io.container.manager": "cri-o",
+        "io.kubernetes.cri-o.PortMappings": "[]",
+        "io.kubernetes.cri-o.Metadata": "{\"name\":\"nginx-sandbox\",\"uid\":\"sysbox-pod\",\"namespace\":\"default\",\"attempt\":1}",
+        "io.kubernetes.cri-o.Labels": "null",
+        "io.kubernetes.cri-o.KubeName": "nginx-sandbox",
+        "io.kubernetes.cri-o.ContainerName": "k8s_POD_nginx-sandbox_default_sysbox-pod_1",
+        "io.kubernetes.cri-o.userns-mode": "auto:size=65536",
+        "io.kubernetes.cri-o.PrivilegedRuntime": "false",
+        "io.kubernetes.cri-o.HostNetwork": "false",
+        "io.kubernetes.cri-o.CgroupParent": "",
+        "io.kubernetes.cri-o.Annotations": "{\"io.kubernetes.cri-o.userns-mode\":\"auto:size=65536\"}",
+        "io.kubernetes.cri-o.NamespaceOptions": "null",
+        "io.kubernetes.cri-o.SeccompProfilePath": "",
+        "io.kubernetes.cri-o.RuntimeHandler": "sysbox-runc",
+        "io.kubernetes.cri-o.Created": "2021-03-02T05:02:04.784870926Z",
+        "io.kubernetes.cri-o.IP.0": "10.244.0.2",
+        "io.kubernetes.cri-o.Name": "k8s_nginx-sandbox_default_sysbox-pod_1",
+        "io.kubernetes.cri-o.ContainerType": "sandbox",
+        "io.kubernetes.cri-o.SandboxID": "28bc7b3fa38873c0023cea9fc06a5d5a5eb10927062d4a8c9b0466803ad34609",
+        "io.kubernetes.cri-o.ShmPath": "/var/run/containers/storage/overlay-containers/28bc7b3fa38873c0023cea9fc06a5d5a5eb10927062d4a8c9b0466803ad34609/userdata/shm",
+        "io.kubernetes.cri-o.ResolvPath": "",
+        "io.kubernetes.cri-o.MountPoint": "/var/lib/containers/storage/overlay/82d3ffc34ca5568273b0d81c9f474aad08a8ab26d080cdc5016de5920ba09755/merged",
+        "io.kubernetes.cri-o.LogPath": "/tmp/28bc7b3fa38873c0023cea9fc06a5d5a5eb10927062d4a8c9b0466803ad34609.log",
+        "io.kubernetes.cri-o.Namespace": "default",
+        "io.kubernetes.cri-o.ContainerID": "28bc7b3fa38873c0023cea9fc06a5d5a5eb10927062d4a8c9b0466803ad34609",
+        "io.kubernetes.cri-o.HostName": "28bc7b3fa388",
+        "io.kubernetes.cri-o.HostnamePath": "/var/run/containers/storage/overlay-containers/28bc7b3fa38873c0023cea9fc06a5d5a5eb10927062d4a8c9b0466803ad34609/userdata/hostname"
+      },
+      "linux": {
+        "uidMappings": [
+          {
+            "containerID": 0,
+            "hostID": 296608,
+            "size": 65536
+          }
+        ],
+        "gidMappings": [
+          {
+            "containerID": 0,
+            "hostID": 296608,
+            "size": 65536
+          }
+        ],
+        "resources": {
+          "devices": [
+            {
+              "allow": false,
+              "access": "rwm"
+            }
+          ],
+          "cpu": {
+            "shares": 2
+          }
+        },
+        "cgroupsPath": "crio-28bc7b3fa38873c0023cea9fc06a5d5a5eb10927062d4a8c9b0466803ad34609",
+        "namespaces": [
+          {
+            "type": "pid"
+          },
+          {
+            "type": "network",
+            "path": "/var/run/netns/36dc92f0-0261-4af0-8969-e92b788f1f1b"
+          },
+          {
+            "type": "ipc",
+            "path": "/var/run/ipcns/36dc92f0-0261-4af0-8969-e92b788f1f1b"
+          },
+          {
+            "type": "uts",
+            "path": "/var/run/utsns/36dc92f0-0261-4af0-8969-e92b788f1f1b"
+          },
+          {
+            "type": "mount"
+          },
+          {
+            "type": "user",
+            "path": "/var/run/userns/36dc92f0-0261-4af0-8969-e92b788f1f1b"
+          }
+        ]
+      }
+    }
+  }
+}
+
+
+
+## CRI-O MAIN CONTAINER
+
+cesar@k8s-node:~/nestybox/sysbox-internal/experiments/sysbox-pods/crictl/test-sysbox-pod$ sudo crictl inspect 12147bdc07540
+{
+  "status": {
+    "id": "12147bdc075404f0a6bb298b1d16807cb000a6faeb9a5ca6bb968bafb4ad509d",
+    "metadata": {
+      "attempt": 0,
+      "name": "alpine-docker"
+    },
+    "state": "CONTAINER_RUNNING",
+    "createdAt": "2021-03-02T05:02:08.363452476Z",
+    "startedAt": "2021-03-02T05:02:08.442531283Z",
+    "finishedAt": "1970-01-01T00:00:00Z",
+    "exitCode": 0,
+    "image": {
+      "annotations": {},
+      "image": "docker.io/nestybox/alpine-docker:latest"
+    },
+    "imageRef": "docker.io/nestybox/alpine-docker@sha256:df9dcb5078f6c1c54cb90e0ffbe2c7f8badeac1ede7f4c3d4b000f94885db080",
+    "reason": "",
+    "message": "",
+    "labels": {},
+    "annotations": {},
+    "mounts": [],
+    "logPath": "/tmp/container.log"
+  },
+  "info": {
+    "sandboxID": "28bc7b3fa38873c0023cea9fc06a5d5a5eb10927062d4a8c9b0466803ad34609",
+    "pid": 1647809,
+    "runtimeSpec": {
+      "ociVersion": "1.0.2-dev",
+      "process": {
+        "user": {
+          "uid": 0,
+          "gid": 0
+        },
+        "args": [
+          "tail",
+          "-f",
+          "/dev/null"
+        ],
+        "env": [
+          "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+          "TERM=xterm",
+          "HOSTNAME=28bc7b3fa388",
+          "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+        ],
+        "cwd": "/",
+        "capabilities": {
+          "bounding": [
+            "CAP_CHOWN",
+            "CAP_DAC_OVERRIDE",
+            "CAP_FSETID",
+            "CAP_FOWNER",
+            "CAP_SETGID",
+            "CAP_SETUID",
+            "CAP_SETPCAP",
+            "CAP_NET_BIND_SERVICE",
+            "CAP_KILL"
+          ],
+          "effective": [
+            "CAP_CHOWN",
+            "CAP_DAC_OVERRIDE",
+            "CAP_FSETID",
+            "CAP_FOWNER",
+            "CAP_SETGID",
+            "CAP_SETUID",
+            "CAP_SETPCAP",
+            "CAP_NET_BIND_SERVICE",
+            "CAP_KILL"
+          ],
+          "inheritable": [
+            "CAP_CHOWN",
+            "CAP_DAC_OVERRIDE",
+            "CAP_FSETID",
+            "CAP_FOWNER",
+            "CAP_SETGID",
+            "CAP_SETUID",
+            "CAP_SETPCAP",
+            "CAP_NET_BIND_SERVICE",
+            "CAP_KILL"
+          ],
+          "permitted": [
+            "CAP_CHOWN",
+            "CAP_DAC_OVERRIDE",
+            "CAP_FSETID",
+            "CAP_FOWNER",
+            "CAP_SETGID",
+            "CAP_SETUID",
+            "CAP_SETPCAP",
+            "CAP_NET_BIND_SERVICE",
+            "CAP_KILL"
+          ]
+        }
+      },
+      "root": {
+        "path": "/var/lib/containers/storage/overlay/d42a105d219a1cdb099680b464f82474964fe2b0613ff2b6d2a64a7233e0a233/merged"
+      },
+      "hostname": "28bc7b3fa388",
+      "mounts": [
+        {
+          "destination": "/proc",
+          "type": "proc",
+          "source": "proc",
+          "options": [
+            "nosuid",
+            "noexec",
+            "nodev"
+          ]
+        },
+        {
+          "destination": "/dev",
+          "type": "tmpfs",
+          "source": "tmpfs",
+          "options": [
+            "nosuid",
+            "strictatime",
+            "mode=755",
+            "size=65536k"
+          ]
+        },
+        {
+          "destination": "/dev/pts",
+          "type": "devpts",
+          "source": "devpts",
+          "options": [
+            "nosuid",
+            "noexec",
+            "newinstance",
+            "ptmxmode=0666",
+            "mode=0620",
+            "gid=5"
+          ]
+        },
+        {
+          "destination": "/dev/mqueue",
+          "type": "mqueue",
+          "source": "mqueue",
+          "options": [
+            "nosuid",
+            "noexec",
+            "nodev"
+          ]
+        },
+        {
+          "destination": "/sys",
+          "type": "sysfs",
+          "source": "sysfs",
+          "options": [
+            "nosuid",
+            "noexec",
+            "nodev",
+            "ro"
+          ]
+        },
+        {
+          "destination": "/sys/fs/cgroup",
+          "type": "cgroup",
+          "source": "cgroup",
+          "options": [
+            "nosuid",
+            "noexec",
+            "nodev",
+            "relatime",
+            "ro"
+          ]
+        },
+        {
+          "destination": "/dev/shm",
+          "type": "bind",
+          "source": "/var/run/containers/storage/overlay-containers/28bc7b3fa38873c0023cea9fc06a5d5a5eb10927062d4a8c9b0466803ad34609/userdata/shm",
+          "options": [
+            "rw",
+            "bind"
+          ]
+        },
+        {
+          "destination": "/etc/hostname",
+          "type": "bind",
+          "source": "/var/run/containers/storage/overlay-containers/28bc7b3fa38873c0023cea9fc06a5d5a5eb10927062d4a8c9b0466803ad34609/userdata/hostname",
+          "options": [
+            "rw",
+            "bind"
+          ]
+        }
+      ],
+      "annotations": {
+        "io.kubernetes.cri-o.StdinOnce": "false",
+        "io.kubernetes.cri-o.MountPoint": "/var/lib/containers/storage/overlay/d42a105d219a1cdb099680b464f82474964fe2b0613ff2b6d2a64a7233e0a233/merged",
+        "io.kubernetes.cri-o.Created": "2021-03-02T05:02:07.945702618Z",
+        "io.kubernetes.cri-o.ImageName": "docker.io/nestybox/alpine-docker:latest",
+        "io.kubernetes.cri-o.SandboxID": "28bc7b3fa38873c0023cea9fc06a5d5a5eb10927062d4a8c9b0466803ad34609",
+        "io.kubernetes.cri-o.SandboxName": "k8s_nginx-sandbox_default_sysbox-pod_1",
+        "io.kubernetes.cri-o.TTY": "false",
+        "io.container.manager": "cri-o",
+        "io.kubernetes.cri-o.Volumes": "[]",
+        "io.kubernetes.cri-o.Name": "k8s_alpine-docker_nginx-sandbox_default_sysbox-pod_0",
+        "io.kubernetes.cri-o.ContainerID": "12147bdc075404f0a6bb298b1d16807cb000a6faeb9a5ca6bb968bafb4ad509d",
+        "io.kubernetes.cri-o.LogPath": "/tmp/container.log",
+        "io.kubernetes.cri-o.Stdin": "false",
+        "io.kubernetes.cri-o.ResolvPath": "",
+        "io.kubernetes.cri-o.SeccompProfilePath": "",
+        "io.kubernetes.cri-o.Labels": "null",
+        "io.kubernetes.cri-o.Annotations": "null",
+        "io.kubernetes.cri-o.Image": "nestybox/alpine-docker",
+        "io.kubernetes.cri-o.ContainerType": "container",
+        "io.kubernetes.cri-o.Metadata": "{\"name\":\"alpine-docker\"}",
+        "io.kubernetes.cri-o.IP.0": "10.244.0.2",
+        "io.kubernetes.cri-o.ImageRef": "41c78e63202a8a71e53969ee59ca2ac84387885dfaaf5873fa3e86a3404af368"
+      },
+      "linux": {
+        "uidMappings": [
+          {
+            "containerID": 0,
+            "hostID": 296608,
+            "size": 65536
+          }
+        ],
+        "gidMappings": [
+          {
+            "containerID": 0,
+            "hostID": 296608,
+            "size": 65536
+          }
+        ],
+        "resources": {
+          "devices": [
+            {
+              "allow": false,
+              "access": "rwm"
+            }
+          ],
+          "pids": {
+            "limit": 1024
+          }
+        },
+        "cgroupsPath": "/crio/crio-12147bdc075404f0a6bb298b1d16807cb000a6faeb9a5ca6bb968bafb4ad509d",
+        "namespaces": [
+          {
+            "type": "pid",
+            "path": "/proc/1647696/ns/pid"
+          },
+          {
+            "type": "network",
+            "path": "/var/run/netns/36dc92f0-0261-4af0-8969-e92b788f1f1b"
+          },
+          {
+            "type": "ipc",
+            "path": "/var/run/ipcns/36dc92f0-0261-4af0-8969-e92b788f1f1b"
+          },
+          {
+            "type": "uts",
+            "path": "/var/run/utsns/36dc92f0-0261-4af0-8969-e92b788f1f1b"
+          },
+          {
+            "type": "mount"
+          },
+          {
+            "type": "user",
+            "path": "/var/run/userns/36dc92f0-0261-4af0-8969-e92b788f1f1b"
+          }
+        ],
+        "maskedPaths": [
+          "/proc/acpi",
+          "/proc/kcore",
+          "/proc/keys",
+          "/proc/latency_stats",
+          "/proc/timer_list",
+          "/proc/timer_stats",
+          "/proc/sched_debug",
+          "/proc/scsi",
+          "/sys/firmware",
+          "/sys/dev"
+        ],
+        "readonlyPaths": [
+          "/proc/asound",
+          "/proc/bus",
+          "/proc/fs",
+          "/proc/irq",
+          "/proc/sys",
+          "/proc/sysrq-trigger"
+        ]
+      }
+    },
+    "privileged": false
+  }
+}
+cesar@k8s-node:~/nestybox/sysbox-internal/experiments/sysbox-pods/crictl/test-sysbox-pod$

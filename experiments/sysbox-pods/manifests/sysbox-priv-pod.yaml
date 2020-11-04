@@ -1,0 +1,59 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-with-sysbox
+spec:
+  containers:
+  - name: pod-with-sysbox
+    image: sysbox-test:latest
+    command: ["tail"]
+    args: ["-f", "/dev/null"]
+    imagePullPolicy: Never
+    securityContext:
+      privileged: true
+    volumeMounts:
+    - mountPath: /var/lib/docker
+      name: var-lib-docker
+    - mountPath: /var/lib/sysbox
+      name: var-lib-sysbox
+    - mountPath: /lib/modules/5.4.0-42-generic
+      name: lib-modules
+      readOnly: true
+    - mountPath: /usr/src/linux-headers-5.4.0-42-generic
+      name: linux-headers-generic
+      readOnly: true
+    - mountPath: /usr/src/linux-headers-5.4.0-42
+      name: linux-headers
+      readOnly: true
+    - mountPath: /home/coder
+      name: pvol
+    - mountPath: /var/lib/coder/docker
+      name: pvol2
+  volumes:
+  - name: var-lib-docker
+    hostPath:
+      path: /var/tmp/sysbox-var-lib-docker
+      type: DirectoryOrCreate
+  - name: var-lib-sysbox
+    hostPath:
+      path: /var/tmp/sysbox-var-lib-sysbox
+      type: DirectoryOrCreate
+  - name: lib-modules
+    hostPath:
+      path: /lib/modules/5.4.0-42-generic
+      type: Directory
+  - name: linux-headers-generic
+    hostPath:
+      path: /usr/src/linux-headers-5.4.0-42-generic
+      type: Directory
+  - name: linux-headers
+    hostPath:
+      path: /usr/src/linux-headers-5.4.0-42
+      type: Directory
+  - name: pvol
+    persistentVolumeClaim:
+      claimName: pvol-claim
+  - name: pvol2
+    persistentVolumeClaim:
+      claimName: pvol-claim2
+  restartPolicy: Never
