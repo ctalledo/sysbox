@@ -45,12 +45,15 @@ RUN apt-get update \
        rsync \
        dialog \
        kmod \
+       bash-completion \
     && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && echo ". /etc/bash_completion" >> /etc/bash.bashrc
 
 # Install Docker.
 RUN curl -fsSL https://get.docker.com -o get-docker.sh
 RUN sh get-docker.sh
+ADD https://raw.githubusercontent.com/docker/docker-ce/master/components/cli/contrib/completion/bash/docker /etc/bash_completion.d/docker.sh
 
 # Copy Sysbox artifacts.
 COPY sysbox-mgr /usr/local/sbin/sysbox-mgr

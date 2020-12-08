@@ -1,5 +1,5 @@
 #
-# Sysbox-In-Docker Container Dockerfile (Ubuntu-Focal image)
+# Sysbox-In-Docker Container Dockerfile (Ubuntu-Eoan image)
 #
 # This Dockerfile creates the sysbox-in-docker container image, which holds
 # all Sysbox binaries and its dependencies. The goal is to allow users to run
@@ -16,7 +16,7 @@
 #
 # * Image creation:
 #
-#   $ make sysbox-in-docker ubuntu-focal
+#   $ make sysbox-in-docker ubuntu-eoan
 #
 # * Container creation:
 #
@@ -26,10 +26,10 @@
 #                -v /lib/modules/$(uname -r):/lib/modules/$(uname -r):ro \
 #                -v /usr/src/linux-headers-$(uname -r):/usr/src/linux-headers-$(uname -r):ro \
 #                -v /usr/src/linux-headers-$(uname -r | cut -d"-" -f 1,2):/usr/src/linux-headers-$(uname -r | cut -d"-" -f 1,2):ro \
-#                nestybox/sysbox-in-docker:ubuntu-focal
+#                nestybox/sysbox-in-docker:ubuntu-eoan
 #
 
-FROM ubuntu:focal
+FROM ubuntu:eoan
 
 ENV DEBIAN_FRONTEND=noninteractive
 
