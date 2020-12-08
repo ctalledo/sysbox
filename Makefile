@@ -338,6 +338,15 @@ sysbox-in-docker-local: sysbox-local
 	@cp sysbox-fs/sysbox-fs sysbox-in-docker/
 	@make -C $(SYSBOX_IN_DOCKER_DIR) $(filter-out $@,$(MAKECMDGOALS))
 
+test-sind: ## Run the sysbox-in-docker integration tests
+test-sind: test-img
+	$(TEST_DIR)/scr/testContainerPre $(TEST_VOL1) $(TEST_VOL2) $(TEST_VOL3)
+	$(DOCKER_RUN) /bin/bash -c "export PHY_EGRESS_IFACE_MTU=$(EGRESS_IFACE_MTU) && \
+		sindTestContainerInit && make test-sind-local"
+
+test-sind-local:
+	$(TEST_DIR)/scr/testSysboxInDocker $(TESTPATH)
+
 test-sind-shell: ## Get a shell in the test container for sysbox-in-docker (useful for debug)
 test-sind-shell: test-img
 	$(TEST_DIR)/scr/testContainerPre $(TEST_VOL1) $(TEST_VOL2) $(TEST_VOL3)
