@@ -406,3 +406,85 @@ function teardown() {
 
   docker_stop "$syscont"
 }
+
+# Ensure that a read-only immutable mount *can* be masked by
+# a new read-write mount on top of it.
+@test "rw mount on top of immutable ro mount" {
+
+  local syscont=$(docker_run --rm debian:latest tail -f /dev/null)
+  local immutable_ro_mounts=$(list_container_ro_mounts $syscont)
+
+  for m in $immutable_ro_mounts; do
+
+    # skip /proc and /sys since these are special mounts (we have dedicated
+    # tests for remounting them). We also
+    if [[ $m =~ "/proc" ]] || [[ $m =~ "/proc/*" ]] ||
+         [[ $m =~ "/sys" ]] || [[ $m =~ "/sys/*" ]] ||
+         [[ $m =~ "/dev" ]] || [[ $m =~ "/dev/*" ]]; then
+      continue
+    fi
+
+    # This should fail (mount is read-only)
+    docker exec "$syscont" sh -c "touch $m"
+    [ "$status" -ne 0 ]
+
+    printf "\nmounting tmpfs (rw) on top of immutable ro mount $m\n"
+
+    docker exec "$syscont" sh -c "mount -t tmpfs -o size=100M tmpfs $m"
+    [ "$status" -eq 0 ]
+
+    # This should pass (tmpfs mount is read-write)
+    docker exec "$syscont" sh -c "touch $m"
+    [ "$status" -eq 0 ]
+
+    docker exec "$syscont" sh -c "umount $m"
+    [ "$status" -eq 0 ]
+
+    # This should fail (mount is read-only)
+    docker exec "$syscont" sh -c "touch $m"
+    [ "$status" -ne 0 ]
+  done
+
+  docker_stop "$syscont"
+}
+
+# Ensure that a read-write immutable mount *can* be masked by
+# a new read-only mount on top of it.
+@test "ro mount on top of immutable rw mount" {
+
+  local syscont=$(docker_run --rm debian:latest tail -f /dev/null)
+  local immutable_rw_mounts=$(list_container_rw_mounts $syscont)
+
+  for m in $immutable_rw_mounts; do
+
+    # skip /proc and /sys since these are special mounts (we have dedicated
+    # tests for remounting them). We also
+    if [[ $m =~ "/proc" ]] || [[ $m =~ "/proc/*" ]] ||
+         [[ $m =~ "/sys" ]] || [[ $m =~ "/sys/*" ]] ||
+         [[ $m =~ "/dev" ]] || [[ $m =~ "/dev/*" ]]; then
+      continue
+    fi
+
+    # This should pass (mount is read-write)
+    docker exec "$syscont" sh -c "touch $m"
+    [ "$status" -eq 0 ]
+
+    printf "\nmounting tmpfs (ro) on top of immutable rw mount $m\n"
+
+    docker exec "$syscont" sh -c "mount -t tmpfs -o ro,size=100M tmpfs $m"
+    [ "$status" -eq 0 ]
+
+    # This should fail (tmpfs mount is read-only)
+    docker exec "$syscont" sh -c "touch $m"
+    [ "$status" -ne 0 ]
+
+    docker exec "$syscont" sh -c "umount $m"
+    [ "$status" -eq 0 ]
+
+    # This should pass (mount is read-write)
+    docker exec "$syscont" sh -c "touch $m"
+    [ "$status" -ne 0 ]
+  done
+
+  docker_stop "$syscont"
+}
