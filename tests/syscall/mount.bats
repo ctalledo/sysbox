@@ -193,7 +193,6 @@ function teardown() {
 @test "immutable mount can't be unmounted" {
 
   local syscont=$(docker_run --rm debian:latest tail -f /dev/null)
-
   local immutable_mounts=$(list_container_mounts $syscont)
 
   for m in $immutable_mounts; do
@@ -204,7 +203,6 @@ function teardown() {
   done
 
   local immutable_mounts_after=$(list_container_mounts $syscont)
-
   [[ $immutable_ro_mounts == $immutable_ro_mounts_after ]]
 
   docker_stop "$syscont"
@@ -215,7 +213,6 @@ function teardown() {
 @test "immutable ro mount can't be remounted rw" {
 
   local syscont=$(docker_run --rm debian:latest tail -f /dev/null)
-
   local immutable_ro_mounts=$(list_container_ro_mounts $syscont)
 
   for m in $immutable_ro_mounts; do
@@ -226,7 +223,6 @@ function teardown() {
   done
 
   local immutable_ro_mounts_after=$(list_container_ro_mounts $syscont)
-
   [[ $immutable_ro_mounts == $immutable_ro_mounts_after ]]
 
   docker_stop "$syscont"
@@ -237,14 +233,12 @@ function teardown() {
 @test "immutable rw mount can be remounted ro" {
 
   local syscont=$(docker_run --rm debian:latest tail -f /dev/null)
-
   local immutable_rw_mounts=$(list_container_rw_mounts $syscont)
 
   for m in $immutable_rw_mounts; do
 
     # Remounting /proc or /dev as read-only will prevent docker execs into the
     # container; skip these.
-
     if [[ $m =~ "/proc" ]] || [[ $m =~ "/proc/*" ]] ||
        [[ $m =~ "/dev" ]] || [[ $m =~ "/dev/*" ]]; then
       continue
@@ -264,7 +258,6 @@ function teardown() {
 @test "immutable ro mount can be remounted ro" {
 
   local syscont=$(docker_run --rm debian:latest tail -f /dev/null)
-
   local immutable_ro_mounts=$(list_container_ro_mounts $syscont)
 
   for m in $immutable_ro_mounts; do
@@ -275,7 +268,6 @@ function teardown() {
   done
 
   local immutable_ro_mounts_after=$(list_container_ro_mounts $syscont)
-
   [[ $immutable_ro_mounts == $immutable_ro_mounts_after ]]
 
   docker_stop "$syscont"
@@ -286,7 +278,6 @@ function teardown() {
 @test "immutable rw mount can be remounted rw" {
 
   local syscont=$(docker_run --rm debian:latest tail -f /dev/null)
-
   local immutable_rw_mounts=$(list_container_rw_mounts $syscont)
 
   for m in $immutable_rw_mounts; do
@@ -297,8 +288,121 @@ function teardown() {
   done
 
   local immutable_rw_mounts_after=$(list_container_rw_mounts $syscont)
-
   [[ $immutable_rw_mounts == $immutable_rw_mounts_after ]]
+
+  docker_stop "$syscont"
+}
+
+# Ensure that a read-only immutable mount can't be bind-mounted
+# to a new mountpoint then re-mounted read-write
+@test "immutable ro mount can't be bind-mounted rw" {
+
+  local syscont=$(docker_run --rm debian:latest tail -f /dev/null)
+  local immutable_ro_mounts=$(list_container_ro_mounts $syscont)
+  local target=/root/target
+
+  for m in $immutable_ro_mounts; do
+
+    printf "\ntesting bind-mount of immutable ro bind-mount $m -> $target\n"
+
+    # Create bind-mount target (dir or file, depending on bind-mount source type)
+    docker exec "$syscont" bash -c "[[ -d $m ]]"
+
+    if [ "$status" -eq 0 ]; then
+      docker exec "$syscont" sh -c "mkdir -p $target"
+      [ "$status" -eq 0 ]
+    else
+      docker exec "$syscont" sh -c "touch $target"
+      [ "$status" -eq 0 ]
+    fi
+
+    docker exec "$syscont" sh -c "mount --bind $m $target"
+    [ "$status" -eq 0 ]
+
+    # Verify the bind-mount continues to be read-only
+    docker exec "$syscont" sh -c "touch $target"
+    [ "$status" -ne 0 ]
+
+    # This rw remount should fail
+    printf "\ntesting rw remount of immutable ro bind-mount $target\n"
+    docker exec "$syscont" sh -c "mount -o remount,bind,rw $target"
+    [ "$status" -ne 0 ]
+
+    # This ro remount should pass (it's not needed but just to double-check)
+    docker exec "$syscont" sh -c "mount -o remount,bind,ro $target"
+    [ "$status" -eq 0 ]
+
+    docker exec "$syscont" sh -c "umount $target"
+    [ "$status" -eq 0 ]
+
+    docker exec "$syscont" sh -c "rm -rf $target"
+    [ "$status" -eq 0 ]
+  done
+
+  docker_stop "$syscont"
+}
+
+# Ensure that a read-write immutable mount can be bind-mounted
+# to a new mountpoint then re-mounted read-only
+@test "immutable rw mount can be bind-mounted ro" {
+
+  local syscont=$(docker_run --rm debian:latest tail -f /dev/null)
+  local immutable_rw_mounts=$(list_container_rw_mounts $syscont)
+  local target=/root/target
+
+  for m in $immutable_rw_mounts; do
+
+    # skip /proc and /sys since these are special mounts (we have dedicated
+    # tests for remounting them). We also
+    if [[ $m =~ "/proc" ]] || [[ $m =~ "/proc/*" ]] ||
+       [[ $m =~ "/sys" ]] || [[ $m =~ "/sys/*" ]] ||
+       [[ $m =~ "/dev" ]] || [[ $m =~ "/dev/*" ]]; then
+      continue
+    fi
+
+    printf "\ntesting bind-mount of immutable rw bind-mount $m -> $target\n"
+
+    # Create bind-mount target (dir or file, depending on bind-mount source type)
+    docker exec "$syscont" bash -c "[[ -d $m ]]"
+
+    if [ "$status" -eq 0 ]; then
+      docker exec "$syscont" sh -c "mkdir -p $target"
+      [ "$status" -eq 0 ]
+    else
+      docker exec "$syscont" sh -c "touch $target"
+      [ "$status" -eq 0 ]
+    fi
+
+    docker exec "$syscont" sh -c "mount --bind $m $target"
+    [ "$status" -eq 0 ]
+
+    # Verify the bind-mount continues to be read-write
+    docker exec "$syscont" sh -c "touch $target"
+    [ "$status" -eq 0 ]
+
+    # This ro remount should pass
+    printf "\ntesting ro remount of immutable rw bind-mount $target\n"
+    docker exec "$syscont" sh -c "mount -o remount,bind,ro $target"
+    [ "$status" -eq 0 ]
+
+    # Verify the bind-mount is now read-only
+    docker exec "$syscont" sh -c "touch $target"
+    [ "$status" -ne 0 ]
+
+    # Verify the bind-mount source continues to be read-write
+    docker exec "$syscont" sh -c "touch $m"
+    [ "$status" -eq 0 ]
+
+    # This rw remount should also pass
+    docker exec "$syscont" sh -c "mount -o remount,bind,rw $target"
+    [ "$status" -eq 0 ]
+
+    docker exec "$syscont" sh -c "umount $target"
+    [ "$status" -eq 0 ]
+
+    docker exec "$syscont" sh -c "rm -rf $target"
+    [ "$status" -eq 0 ]
+  done
 
   docker_stop "$syscont"
 }
