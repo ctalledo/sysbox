@@ -209,3 +209,96 @@ function teardown() {
 
   docker_stop "$syscont"
 }
+
+# Ensure that a read-only immutable mount can't be remounted as read-write
+# inside the container.
+@test "immutable ro mount can't be remounted rw" {
+
+  local syscont=$(docker_run --rm debian:latest tail -f /dev/null)
+
+  local immutable_ro_mounts=$(list_container_ro_mounts $syscont)
+
+  for m in $immutable_ro_mounts; do
+    printf "\ntesting rw remount of immutable ro mount $m\n"
+
+    docker exec "$syscont" sh -c "mount -o remount,bind,rw $m"
+    [ "$status" -ne 0 ]
+  done
+
+  local immutable_ro_mounts_after=$(list_container_ro_mounts $syscont)
+
+  [[ $immutable_ro_mounts == $immutable_ro_mounts_after ]]
+
+  docker_stop "$syscont"
+}
+
+# Ensure that a read-write immutable mount *can* be remounted as read-only inside
+# the container.
+@test "immutable rw mount can be remounted ro" {
+
+  local syscont=$(docker_run --rm debian:latest tail -f /dev/null)
+
+  local immutable_rw_mounts=$(list_container_rw_mounts $syscont)
+
+  for m in $immutable_rw_mounts; do
+
+    # Remounting /proc or /dev as read-only will prevent docker execs into the
+    # container; skip these.
+
+    if [[ $m =~ "/proc" ]] || [[ $m =~ "/proc/*" ]] ||
+       [[ $m =~ "/dev" ]] || [[ $m =~ "/dev/*" ]]; then
+      continue
+    fi
+
+    printf "\ntesting ro remount of immutable rw mount $m\n"
+
+    docker exec "$syscont" sh -c "mount -o remount,bind,ro $m"
+    [ "$status" -eq 0 ]
+  done
+
+  docker_stop "$syscont"
+}
+
+# Ensure that a read-only immutable mount *can* be remounted as read-only inside
+# the container.
+@test "immutable ro mount can be remounted ro" {
+
+  local syscont=$(docker_run --rm debian:latest tail -f /dev/null)
+
+  local immutable_ro_mounts=$(list_container_ro_mounts $syscont)
+
+  for m in $immutable_ro_mounts; do
+    printf "\ntesting ro remount of immutable ro mount $m\n"
+
+    docker exec "$syscont" sh -c "mount -o remount,bind,ro $m"
+    [ "$status" -eq 0 ]
+  done
+
+  local immutable_ro_mounts_after=$(list_container_ro_mounts $syscont)
+
+  [[ $immutable_ro_mounts == $immutable_ro_mounts_after ]]
+
+  docker_stop "$syscont"
+}
+
+# Ensure that a read-write immutable mount *can* be remounted as read-write or
+# read-only inside the container.
+@test "immutable rw mount can be remounted rw" {
+
+  local syscont=$(docker_run --rm debian:latest tail -f /dev/null)
+
+  local immutable_rw_mounts=$(list_container_rw_mounts $syscont)
+
+  for m in $immutable_rw_mounts; do
+    printf "\ntesting rw remount of immutable rw mount $m\n"
+
+    docker exec "$syscont" sh -c "mount -o remount,bind,rw $m"
+    [ "$status" -eq 0 ]
+  done
+
+  local immutable_rw_mounts_after=$(list_container_rw_mounts $syscont)
+
+  [[ $immutable_rw_mounts == $immutable_rw_mounts_after ]]
+
+  docker_stop "$syscont"
+}
