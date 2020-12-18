@@ -7,11 +7,17 @@
 load ../helpers/run
 load ../helpers/syscall
 load ../helpers/docker
+load ../helpers/environment
+load ../helpers/mounts
 load ../helpers/sysbox-health
 
 function teardown() {
   sysbox_log_check
 }
+
+#
+# Test to verify common mount syscall checks performed by sysbox
+#
 
 # Verify that mount syscall emulation performs correct path resolution (per path_resolution(7))
 @test "mount path-resolution" {
@@ -172,6 +178,34 @@ function teardown() {
   # perform the mount with mountProcDac
   docker exec -u 1000:1000 "$syscont" bash -c "mountProcDac $mnt_path"
   [ "$status" -eq 0 ]
+
+  docker_stop "$syscont"
+}
+
+#
+# Test to verify sys container immutable mounts.
+#
+# Note: a sys container immutable mount is a mount that is setup at container
+# creation time.
+#
+
+# Ensure immutable mounts can't be unmounted from inside the container
+@test "immutable mount can't be unmounted" {
+
+  local syscont=$(docker_run --rm debian:latest tail -f /dev/null)
+
+  local immutable_mounts=$(list_container_mounts $syscont)
+
+  for m in $immutable_mounts; do
+    printf "\ntesting unmount of immutable mount $m\n"
+
+    docker exec "$syscont" sh -c "umount $m"
+    [ "$status" -ne 0 ]
+  done
+
+  local immutable_mounts_after=$(list_container_mounts $syscont)
+
+  [[ $immutable_ro_mounts == $immutable_ro_mounts_after ]]
 
   docker_stop "$syscont"
 }
