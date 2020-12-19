@@ -483,8 +483,111 @@ function teardown() {
 
     # This should pass (mount is read-write)
     docker exec "$syscont" sh -c "touch $m"
+    [ "$status" -eq 0 ]
+  done
+
+  docker_stop "$syscont"
+}
+
+@test "immutable ro mount in inner mnt ns" {
+
+  local syscont=$(docker_run --rm debian:latest tail -f /dev/null)
+  local immutable_ro_mounts=$(list_container_ro_mounts $syscont)
+
+  docker exec -d "$syscont" sh -c "unshare -m bash -c \"sleep 1000\""
+  [ "$status" -eq 0 ]
+
+  docker exec "$syscont" sh -c "pidof sleep"
+  [ "$status" -eq 0 ]
+  inner_pid=$output
+
+  for m in $immutable_ro_mounts; do
+    docker exec "$syscont" sh -c "nsenter -a -t $inner_pid umount $m"
+    [ "$status" -ne 0 ]
+
+    docker exec "$syscont" sh -c "nsenter -a -t $inner_pid mount -o remount,bind,rw $m"
     [ "$status" -ne 0 ]
   done
+
+  docker_stop "$syscont"
+}
+
+
+### Nested Containers (covers chroot + mnt namespace)
+
+# * Ensure an immutable read-only mount that is bind-mounted read-only into an
+#   inner priv container can't be remounted rw from inside that privileged
+#   container.
+
+# * Create priv container, with dir whose name matches a sysbox immutable mount,
+#   create a mountpoint on that dir, and verify sysbox-fs does not confuse
+#   that mountpoint with an immutable mount.
+
+@test "immutable ro mount in inner container" {
+
+  local syscont=$(docker_run --rm nestybox/alpine-docker-dbg tail -f /dev/null)
+  local immutable_ro_mounts=$(list_container_ro_mounts $syscont)
+  local linux_libmod_mount=$(echo $immutable_ro_mounts |  tr ' ' '\n' | grep "lib/modules")
+
+  [ -n "$linux_libmod_mount" ]
+
+  docker exec -d "$syscont" sh -c "dockerd > /var/log/dockerd.log 2>&1"
+  [ "$status" -eq 0 ]
+
+  wait_for_inner_dockerd $syscont
+
+  docker exec "$syscont" sh -c "docker run -d --name inner -v $linux_libmod_mount:$linux_libmod_mount:rw debian tail -f /dev/null"
+  [ "$status" -eq 0 ]
+
+  # This should fail (libmod mount is read-only inside inner container)
+  docker exec "$syscont" sh -c "docker exec inner sh -c \"touch $linux_libmod_mount\""
+  [ "$status" -ne 0 ]
+
+  docker exec "$syscont" sh -c "docker stop -t0 inner"
+  [ "$status" -eq 0 ]
+
+  docker_stop "$syscont"
+}
+
+@test "immutable rw mount in inner container" {
+
+  local mnt=/root/dummy
+  mkdir -p $mnt
+
+  if [ -z "$SHIFT_UIDS" ]; then
+    subid=$(grep sysbox /etc/subuid | cut -d":" -f2)
+    chown -R $subid:$subid $mnt
+  fi
+
+  local syscont=$(docker_run --rm -v $mnt:$mnt nestybox/alpine-docker-dbg tail -f /dev/null)
+
+  docker exec -d "$syscont" sh -c "touch $mnt"
+  [ "$status" -eq 0 ]
+
+  docker exec -d "$syscont" sh -c "dockerd > /var/log/dockerd.log 2>&1"
+  [ "$status" -eq 0 ]
+
+  wait_for_inner_dockerd $syscont
+
+  docker exec "$syscont" sh -c "docker run --rm -d --name inner -v $mnt:$mnt:rw debian tail -f /dev/null"
+  [ "$status" -eq 0 ]
+
+  # This should pass (mount is read-write inside inner container)
+  docker exec "$syscont" sh -c "docker exec inner sh -c \"touch $mnt\""
+  [ "$status" -eq 0 ]
+
+  docker exec "$syscont" sh -c "docker stop -t0 inner"
+  [ "$status" -eq 0 ]
+
+  docker exec "$syscont" sh -c "docker run --rm -d --name inner -v $mnt:$mnt:ro debian tail -f /dev/null"
+  [ "$status" -eq 0 ]
+
+  # This should fail (mount is read-only inside inner container)
+  docker exec "$syscont" sh -c "docker exec inner sh -c \"touch $mnt\""
+  [ "$status" -ne 0 ]
+
+  docker exec "$syscont" sh -c "docker stop -t0 inner"
+  [ "$status" -eq 0 ]
 
   docker_stop "$syscont"
 }
