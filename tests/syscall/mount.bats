@@ -512,17 +512,6 @@ function teardown() {
   docker_stop "$syscont"
 }
 
-
-### Nested Containers (covers chroot + mnt namespace)
-
-# * Ensure an immutable read-only mount that is bind-mounted read-only into an
-#   inner priv container can't be remounted rw from inside that privileged
-#   container.
-
-# * Create priv container, with dir whose name matches a sysbox immutable mount,
-#   create a mountpoint on that dir, and verify sysbox-fs does not confuse
-#   that mountpoint with an immutable mount.
-
 @test "immutable ro mount in inner container" {
 
   local syscont=$(docker_run --rm nestybox/alpine-docker-dbg tail -f /dev/null)
@@ -541,6 +530,36 @@ function teardown() {
 
   # This should fail (libmod mount is read-only inside inner container)
   docker exec "$syscont" sh -c "docker exec inner sh -c \"touch $linux_libmod_mount\""
+  [ "$status" -ne 0 ]
+
+  docker exec "$syscont" sh -c "docker stop -t0 inner"
+  [ "$status" -eq 0 ]
+
+  docker_stop "$syscont"
+}
+
+@test "immutable ro mount in inner priv container" {
+
+  local syscont=$(docker_run --rm nestybox/alpine-docker-dbg tail -f /dev/null)
+  local immutable_ro_mounts=$(list_container_ro_mounts $syscont)
+  local linux_libmod_mount=$(echo $immutable_ro_mounts |  tr ' ' '\n' | grep "lib/modules")
+
+  [ -n "$linux_libmod_mount" ]
+
+  docker exec -d "$syscont" sh -c "dockerd > /var/log/dockerd.log 2>&1"
+  [ "$status" -eq 0 ]
+
+  wait_for_inner_dockerd $syscont
+
+  docker exec "$syscont" sh -c "docker run --privileged -d --name inner -v $linux_libmod_mount:$linux_libmod_mount debian tail -f /dev/null"
+  [ "$status" -eq 0 ]
+
+  # This should fail (libmod mount is read-only inside inner container)
+  docker exec "$syscont" sh -c "docker exec inner sh -c \"touch $linux_libmod_mount\""
+  [ "$status" -ne 0 ]
+
+  # This should also fail (can't remount a sysbox immutable mount from inside an inner priv container)
+  docker exec "$syscont" sh -c "docker exec inner sh -c \"mount -o remount,bind,rw $linux_libmod_mount\""
   [ "$status" -ne 0 ]
 
   docker exec "$syscont" sh -c "docker stop -t0 inner"
@@ -585,6 +604,49 @@ function teardown() {
   # This should fail (mount is read-only inside inner container)
   docker exec "$syscont" sh -c "docker exec inner sh -c \"touch $mnt\""
   [ "$status" -ne 0 ]
+
+  docker exec "$syscont" sh -c "docker stop -t0 inner"
+  [ "$status" -eq 0 ]
+
+  docker_stop "$syscont"
+}
+
+@test "don't confuse inner priv container mount with immutable mount" {
+
+  local syscont=$(docker_run --rm nestybox/alpine-docker-dbg tail -f /dev/null)
+  local immutable_ro_mounts=$(list_container_ro_mounts $syscont)
+  local linux_libmod_mount=$(echo $immutable_ro_mounts |  tr ' ' '\n' | grep "lib/modules")
+
+  [ -n "$linux_libmod_mount" ]
+
+  docker exec -d "$syscont" sh -c "dockerd > /var/log/dockerd.log 2>&1"
+  [ "$status" -eq 0 ]
+
+  wait_for_inner_dockerd $syscont
+
+  docker exec "$syscont" sh -c "docker run --privileged -d --name inner debian tail -f /dev/null"
+  [ "$status" -eq 0 ]
+
+  # In the inner container, create a dir and mountpoint whose name matches that
+  # of an immutable sysbox mount
+  docker exec "$syscont" sh -c "docker exec inner sh -c \"mkdir -p $linux_libmod_mount\""
+  [ "$status" -eq 0 ]
+
+  docker exec "$syscont" sh -c "docker exec inner sh -c \"mount --bind $linux_libmod_mount $linux_libmod_mount\""
+  [ "$status" -eq 0 ]
+
+  # Verify we can write, remount, and umount the newly created mountpoint without problem
+  docker exec "$syscont" sh -c "docker exec inner sh -c \"touch $linux_libmod_mount\""
+  [ "$status" -eq 0 ]
+
+  docker exec "$syscont" sh -c "docker exec inner sh -c \"mount -o remount,bind,ro $linux_libmod_mount\""
+  [ "$status" -eq 0 ]
+
+  docker exec "$syscont" sh -c "docker exec inner sh -c \"mount -o remount,bind,rw $linux_libmod_mount\""
+  [ "$status" -eq 0 ]
+
+  docker exec "$syscont" sh -c "docker exec inner sh -c \"umount $linux_libmod_mount\""
+  [ "$status" -eq 0 ]
 
   docker exec "$syscont" sh -c "docker stop -t0 inner"
   [ "$status" -eq 0 ]
