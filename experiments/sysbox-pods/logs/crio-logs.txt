@@ -1,0 +1,457 @@
+# CRIO LOGS
+
+## FIRST SYSBOX POD
+
+### pause container
+
+Mar 08 22:58:42 k8s-node crio[1630123]: time="2021-03-08 22:58:42.745205205Z" level=debug msg="Request: &RunPodSandboxRequest{Config:&PodSandboxConfig{Metadata:&PodSandboxMetadata{Name:alpine-sandbox,Uid:sysbox-pod,Namespace:default,Attempt:1,},Hostname:,LogDirectory:/tmp,DnsConfig:nil,PortMappings:[]*PortMapping{},L
+abels:map[string]string{},Annotations:map[string]string{io.kubernetes.cri-o.userns-mode: auto:size=65536,},Linux:&LinuxPodSandboxConfig{CgroupParent:,SecurityContext:nil,Sysctls:map[string]string{},},},RuntimeHandler:sysbox-runc,}" file="go-grpc-middleware@v1.2.0/chain.go:25" id=ba3206d8-6814-4116-bca7-15423bee5f0d n
+ame=/runtime.v1alpha2.RuntimeService/RunPodSandbox
+Mar 08 22:58:42 k8s-node crio[1630123]: time="2021-03-08 22:58:42.745398916Z" level=info msg="Running pod sandbox: //POD" file="server/sandbox_run_linux.go:301" id=ba3206d8-6814-4116-bca7-15423bee5f0d name=/runtime.v1alpha2.RuntimeService/RunPodSandbox
+Mar 08 22:58:42 k8s-node crio[1630123]: time="2021-03-08 22:58:42.745540031Z" level=debug msg="Parsed reference into \"[overlay@/var/lib/containers/storage+/var/run/containers/storage]k8s.gcr.io/pause:3.2\"" file="storage/storage_transport.go:184"
+Mar 08 22:58:42 k8s-node crio[1630123]: time="2021-03-08 22:58:42.746311934Z" level=debug msg="Exporting opaque data as blob \"sha256:80d28bedfe5dec59da9ebf8e6260224ac9008ab5c11dbbe16ee3ba3e4439ac2c\"" file="storage/storage_image.go:159"
+
+
+// WHY IS THIS OVERLAY MOUNT HAPPENING HERE? IT DOES NOT OCCUR WITH RUNC   <<< DEBUG THIS
+
+Mar 08 22:58:42 k8s-node crio[1630123]: time="2021-03-08 22:58:42.747295649Z" level=debug msg="Overlay: mount_data=,lowerdir=/var/lib/containers/storage/overlay/l/GQ3QWSV5FECIVNTHRFQAXPUHIQ,upperdir=/var/lib/containers/storage/overlay/c284d3f23c9a215423775ba9c8e228c2412ec4411362522454d7320758ca50a2/diff,workdir=/var/
+lib/containers/storage/overlay/c284d3f23c9a215423775ba9c8e228c2412ec4411362522454d7320758ca50a2/work" file="overlay/overlay.go:992"
+
+Mar 08 22:58:42 k8s-node crio[1630123]: time="2021-03-08 22:58:42.907085322Z" level=debug msg="Created pod sandbox \"204904dc2c15e31f7a749d25a21c23f06ed5aec1dd5ea65d8109248dbe99086c\"" file="storage/runtime.go:283"
+Mar 08 22:58:42 k8s-node crio[1630123]: time="2021-03-08 22:58:42.917098923Z" level=debug msg="Pod sandbox \"204904dc2c15e31f7a749d25a21c23f06ed5aec1dd5ea65d8109248dbe99086c\" has work directory \"/var/lib/containers/storage/overlay-containers/204904dc2c15e31f7a749d25a21c23f06ed5aec1dd5ea65d8109248dbe99086c/userdata\
+"" file="storage/runtime.go:323"
+Mar 08 22:58:42 k8s-node crio[1630123]: time="2021-03-08 22:58:42.917394579Z" level=debug msg="Pod sandbox \"204904dc2c15e31f7a749d25a21c23f06ed5aec1dd5ea65d8109248dbe99086c\" has run directory \"/var/run/containers/storage/overlay-containers/204904dc2c15e31f7a749d25a21c23f06ed5aec1dd5ea65d8109248dbe99086c/userdata\"
+" file="storage/runtime.go:333"
+Mar 08 22:58:42 k8s-node crio[1630123]: time="2021-03-08 22:58:42.928006723Z" level=debug msg="Calling pinns with [-d /var/run -f df193135-81e3-40ca-b877-38812979fe33 -n -i -U -u --uid-mapping=0-296608-65536@ --gid-mapping=0-296608-65536@]" file="sandbox/namespaces_linux.go:131"
+
+
+// THIS OVERLAY MOUNT IS OK (SAME OCCURS WITH RUNC)
+
+Mar 08 22:58:42 k8s-node crio[1630123]: time="2021-03-08 22:58:42.940640309Z" level=debug msg="Overlay: mount_data=lowerdir=/var/lib/containers/storage/overlay/l/ZAH6KMBTBAA55BW7WH47OQIEDX:/var/lib/containers/storage/overlay/l/ZAH6KMBTBAA55BW7WH47OQIEDX/../diff1:/var/lib/containers/storage/overlay/l/GQ3QWSV5FECIVNTHR
+FQAXPUHIQ,upperdir=/var/lib/containers/storage/overlay/d6dbe463a2832cc0ebe3a1b2dd6388187ba822f14f9e06257a0b54600a4863e2/diff,workdir=/var/lib/containers/storage/overlay/d6dbe463a2832cc0ebe3a1b2dd6388187ba822f14f9e06257a0b54600a4863e2/work" file="overlay/overlay.go:992"
+
+
+Mar 08 22:58:42 k8s-node crio[1630123]: time="2021-03-08 22:58:42.941511887Z" level=debug msg="Mounted container \"204904dc2c15e31f7a749d25a21c23f06ed5aec1dd5ea65d8109248dbe99086c\" at \"/var/lib/containers/storage/overlay/d6dbe463a2832cc0ebe3a1b2dd6388187ba822f14f9e06257a0b54600a4863e2/merged\"" file="storage/runtim
+e.go:469"
+Mar 08 22:58:42 k8s-node crio[1630123]: time="2021-03-08 22:58:42.941892726Z" level=debug msg="Keeping infra container for pod 204904dc2c15e31f7a749d25a21c23f06ed5aec1dd5ea65d8109248dbe99086c" file="server/sandbox_run_linux.go:816" id=ba3206d8-6814-4116-bca7-15423bee5f0d name=/runtime.v1alpha2.RuntimeService/RunPodSa
+ndbox
+Mar 08 22:58:42 k8s-node crio[1630123]: time="2021-03-08 22:58:42.942956662Z" level=info msg="Got pod network &{Name:alpine-sandbox Namespace:default ID:204904dc2c15e31f7a749d25a21c23f06ed5aec1dd5ea65d8109248dbe99086c NetNS:/var/run/netns/df193135-81e3-40ca-b877-38812979fe33 Networks:[] RuntimeConfig:map[cbr0:{IP: MA
+C: PortMappings:[] Bandwidth:<nil> IpRanges:[]}]}" file="ocicni/ocicni.go:860"
+Mar 08 22:58:42 k8s-node crio[1630123]: time="2021-03-08 22:58:42.943075682Z" level=info msg="About to add CNI network cbr0 (type=flannel)" file="ocicni/ocicni.go:768"
+Mar 08 22:58:43 k8s-node crio[1630123]: time="2021-03-08 22:58:43.012534121Z" level=info msg="Got pod network &{Name:alpine-sandbox Namespace:default ID:204904dc2c15e31f7a749d25a21c23f06ed5aec1dd5ea65d8109248dbe99086c NetNS:/var/run/netns/df193135-81e3-40ca-b877-38812979fe33 Networks:[] RuntimeConfig:map[cbr0:{IP: MA
+C: PortMappings:[] Bandwidth:<nil> IpRanges:[]}]}" file="ocicni/ocicni.go:860"
+Mar 08 22:58:43 k8s-node crio[1630123]: time="2021-03-08 22:58:43.012789282Z" level=info msg="About to check CNI network cbr0 (type=flannel)" file="ocicni/ocicni.go:779"
+Mar 08 22:58:43 k8s-node crio[1630123]: time="2021-03-08 22:58:43.013164680Z" level=debug msg="CNI setup result: &{0.3.1 [{Name:cni0 Mac:3a:4d:23:8d:d3:41 Sandbox:} {Name:veth57723c4e Mac:fe:5d:cf:aa:fc:e8 Sandbox:} {Name:eth0 Mac:fe:95:96:f4:fd:aa Sandbox:/var/run/netns/df193135-81e3-40ca-b877-38812979fe33}] [{Versi
+on:4 Interface:0xc000cef0e8 Address:{IP:10.244.0.22 Mask:ffffff00} Gateway:10.244.0.1}] [{Dst:{IP:10.244.0.0 Mask:ffff0000} GW:<nil>} {Dst:{IP:0.0.0.0 Mask:00000000} GW:10.244.0.1}] {[]  [] []}}" file="server/sandbox_network.go:63" id=ba3206d8-6814-4116-bca7-15423bee5f0d name=/runtime.v1alpha2.RuntimeService/RunPodSa
+ndbox
+Mar 08 22:58:43 k8s-node crio[1630123]: time="2021-03-08 22:58:43.013277946Z" level=debug msg="Found POD IPs: [10.244.0.22]" file="server/sandbox_network.go:95" id=ba3206d8-6814-4116-bca7-15423bee5f0d name=/runtime.v1alpha2.RuntimeService/RunPodSandbox
+Mar 08 22:58:43 k8s-node crio[1630123]: time="2021-03-08 22:58:43.014468064Z" level=debug msg="Running conmon: /usr/local/bin/conmon" args="[-b /var/run/containers/storage/overlay-containers/204904dc2c15e31f7a749d25a21c23f06ed5aec1dd5ea65d8109248dbe99086c/userdata -c 204904dc2c15e31f7a749d25a21c23f06ed5aec1dd5ea65d81
+09248dbe99086c --exit-dir /var/run/crio/exits -l /tmp/204904dc2c15e31f7a749d25a21c23f06ed5aec1dd5ea65d8109248dbe99086c.log --log-level debug -n k8s_POD_alpine-sandbox_default_sysbox-pod_1 -P /var/run/containers/storage/overlay-containers/204904dc2c15e31f7a749d25a21c23f06ed5aec1dd5ea65d8109248dbe99086c/userdata/conmon
+-pidfile -p /var/run/containers/storage/overlay-containers/204904dc2c15e31f7a749d25a21c23f06ed5aec1dd5ea65d8109248dbe99086c/userdata/pidfile --persist-dir /var/lib/containers/storage/overlay-containers/204904dc2c15e31f7a749d25a21c23f06ed5aec1dd5ea65d8109248dbe99086c/userdata -r /usr/local/sbin/sysbox-runc --runtime-a
+rg --root=/run/runc --socket-dir-path /var/run/crio -u 204904dc2c15e31f7a749d25a21c23f06ed5aec1dd5ea65d8109248dbe99086c --syslog]" file="oci/runtime_oci.go:133"
+Mar 08 22:58:43 k8s-node conmon[4191753]: conmon 204904dc2c15e31f7a74 <ninfo>: socket path: /var/run/crio/204904dc2c15e31f7a749d25a21c23f06ed5aec1dd5ea65d8109248dbe99086c/attach
+Mar 08 22:58:43 k8s-node conmon[4191753]: conmon 204904dc2c15e31f7a74 <ninfo>: addr{sun_family=AF_UNIX, sun_path=/var/run/crio/204904dc2c15e31f7a749d25a21c23f06ed5aec1dd5ea65d8109248dbe99086c/attach}
+Mar 08 22:58:43 k8s-node conmon[4191753]: conmon 204904dc2c15e31f7a74 <ninfo>: terminal_ctrl_fd: 14
+Mar 08 22:58:43 k8s-node conmon[4191753]: conmon 204904dc2c15e31f7a74 <ninfo>: winsz read side: 16, winsz write side: 16
+
+<<< delay here (2 sec - sysbox container creation)
+
+Mar 08 22:58:44 k8s-node conmon[4191753]: conmon 204904dc2c15e31f7a74 <ndebug>: container PID: 4191794
+Mar 08 22:58:44 k8s-node crio[1630123]: time="2021-03-08 22:58:44.995397847Z" level=debug msg="Received container pid: 4191794" file="oci/runtime_oci.go:217"
+Mar 08 22:58:45 k8s-node crio[1630123]: time="2021-03-08 22:58:45.074069026Z" level=info msg="Ran pod sandbox 204904dc2c15e31f7a749d25a21c23f06ed5aec1dd5ea65d8109248dbe99086c with infra container: //" file="server/sandbox_run_linux.go:963" id=ba3206d8-6814-4116-bca7-15423bee5f0d name=/runtime.v1alpha2.RuntimeService/
+RunPodSandbox
+Mar 08 22:58:45 k8s-node crio[1630123]: time="2021-03-08 22:58:45.074345286Z" level=debug msg="Response: &RunPodSandboxResponse{PodSandboxId:204904dc2c15e31f7a749d25a21c23f06ed5aec1dd5ea65d8109248dbe99086c,}" file="go-grpc-middleware@v1.2.0/chain.go:25" id=ba3206d8-6814-4116-bca7-15423bee5f0d name=/runtime.v1alpha2.R
+untimeService/RunPodSandbox
+
+
+
+### maincontainer
+
+Mar 08 22:58:45 k8s-node crio[1630123]: time="2021-03-08 22:58:45.076791586Z" level=debug msg="Request: &PullImageRequest{Image:&ImageSpec{Image:nestybox/alpine-docker,Annotations:map[string]string{},},Auth:nil,SandboxConfig:&PodSandboxConfig{Metadata:&PodSandboxMetadata{Name:alpine-sandbox,Uid:sysbox-pod,Namespace:d
+efault,Attempt:1,},Hostname:,LogDirectory:/tmp,DnsConfig:nil,PortMappings:[]*PortMapping{},Labels:map[string]string{},Annotations:map[string]string{io.kubernetes.cri-o.userns-mode: auto:size=65536,},Linux:&LinuxPodSandboxConfig{CgroupParent:,SecurityContext:nil,Sysctls:map[string]string{},},},}" file="go-grpc-middlew
+are@v1.2.0/chain.go:25" id=8055c37f-45ca-4cb0-93b4-5182c3a9a284 name=/runtime.v1alpha2.ImageService/PullImage
+Mar 08 22:58:45 k8s-node crio[1630123]: time="2021-03-08 22:58:45.076910980Z" level=info msg="Pulling image: nestybox/alpine-docker" file="server/image_pull.go:31" id=8055c37f-45ca-4cb0-93b4-5182c3a9a284 name=/runtime.v1alpha2.ImageService/PullImage
+Mar 08 22:58:45 k8s-node crio[1630123]: time="2021-03-08 22:58:45.076996194Z" level=debug msg="Skipping non-existing decryption_keys_path: /etc/crio/keys/" file="server/utils.go:238"
+Mar 08 22:58:45 k8s-node crio[1630123]: time="2021-03-08 22:58:45.110140474Z" level=debug msg="Trying to access \"docker.io/nestybox/alpine-docker:latest\"" file="docker/docker_image_src.go:68"
+Mar 08 22:58:45 k8s-node crio[1630123]: time="2021-03-08 22:58:45.110736584Z" level=debug msg="Credentials not found" file="config/config.go:179"
+Mar 08 22:58:45 k8s-node crio[1630123]: time="2021-03-08 22:58:45.110863151Z" level=debug msg="Using registries.d directory /etc/containers/registries.d for sigstore configuration" file="docker/lookaside.go:51"
+Mar 08 22:58:45 k8s-node crio[1630123]: time="2021-03-08 22:58:45.112922104Z" level=debug msg=" Using \"default-docker\" configuration" file="docker/lookaside.go:169"
+Mar 08 22:58:45 k8s-node crio[1630123]: time="2021-03-08 22:58:45.113105286Z" level=debug msg=" No signature storage configuration found for docker.io/nestybox/alpine-docker:latest" file="docker/lookaside.go:174"
+Mar 08 22:58:45 k8s-node crio[1630123]: time="2021-03-08 22:58:45.113234745Z" level=debug msg="Looking for TLS certificates and private keys in /etc/docker/certs.d/docker.io" file="tlsclientconfig/tlsclientconfig.go:21"
+Mar 08 22:58:45 k8s-node crio[1630123]: time="2021-03-08 22:58:45.113622486Z" level=debug msg="GET https://registry-1.docker.io/v2/" file="docker/docker_client.go:539"
+Mar 08 22:58:45 k8s-node crio[1630123]: time="2021-03-08 22:58:45.506976078Z" level=debug msg="Ping https://registry-1.docker.io/v2/ status 401" file="docker/docker_client.go:735"
+Mar 08 22:58:45 k8s-node crio[1630123]: time="2021-03-08 22:58:45.507882127Z" level=debug msg="GET https://auth.docker.io/token?scope=repository%3Anestybox%2Falpine-docker%3Apull&service=registry.docker.io" file="docker/docker_client.go:698"
+Mar 08 22:58:45 k8s-node crio[1630123]: time="2021-03-08 22:58:45.924472391Z" level=debug msg="GET https://registry-1.docker.io/v2/nestybox/alpine-docker/manifests/latest" file="docker/docker_client.go:539"
+Mar 08 22:58:46 k8s-node crio[1630123]: time="2021-03-08 22:58:46.342972504Z" level=debug msg="Content-Type from manifest GET is \"application/vnd.docker.distribution.manifest.v2+json\"" file="docker/docker_image_src.go:193"
+Mar 08 22:58:46 k8s-node crio[1630123]: time="2021-03-08 22:58:46.343648219Z" level=debug msg="Parsed reference into \"[overlay@/var/lib/containers/storage+/var/run/containers/storage]docker.io/nestybox/alpine-docker:latest\"" file="storage/storage_transport.go:184"
+Mar 08 22:58:46 k8s-node crio[1630123]: time="2021-03-08 22:58:46.344854622Z" level=debug msg="Exporting opaque data as blob \"sha256:41c78e63202a8a71e53969ee59ca2ac84387885dfaaf5873fa3e86a3404af368\"" file="storage/storage_image.go:159"
+Mar 08 22:58:46 k8s-node crio[1630123]: time="2021-03-08 22:58:46.345512206Z" level=debug msg="Image docker.io/nestybox/alpine-docker already in store, skipping pull" file="server/image_pull.go:155" id=8055c37f-45ca-4cb0-93b4-5182c3a9a284 name=/runtime.v1alpha2.ImageService/PullImage
+Mar 08 22:58:46 k8s-node crio[1630123]: time="2021-03-08 22:58:46.345649463Z" level=debug msg="Skipped layer docker.io/nestybox/alpine-docker@sha256:41c78e63202a8a71e53969ee59ca2ac84387885dfaaf5873fa3e86a3404af368" file="server/image_pull.go:311" id=8055c37f-45ca-4cb0-93b4-5182c3a9a284 name=/runtime.v1alpha2.ImageSer
+vice/PullImage
+Mar 08 22:58:46 k8s-node crio[1630123]: time="2021-03-08 22:58:46.346147947Z" level=debug msg="Parsed reference into \"[overlay@/var/lib/containers/storage+/var/run/containers/storage]docker.io/nestybox/alpine-docker:latest\"" file="storage/storage_transport.go:184"
+Mar 08 22:58:46 k8s-node crio[1630123]: time="2021-03-08 22:58:46.347018285Z" level=debug msg="Exporting opaque data as blob \"sha256:41c78e63202a8a71e53969ee59ca2ac84387885dfaaf5873fa3e86a3404af368\"" file="storage/storage_image.go:159"
+Mar 08 22:58:46 k8s-node crio[1630123]: time="2021-03-08 22:58:46.347632492Z" level=info msg="Pulled image: docker.io/nestybox/alpine-docker@sha256:df9dcb5078f6c1c54cb90e0ffbe2c7f8badeac1ede7f4c3d4b000f94885db080" file="server/image_pull.go:95" id=8055c37f-45ca-4cb0-93b4-5182c3a9a284 name=/runtime.v1alpha2.ImageServi
+ce/PullImage
+Mar 08 22:58:46 k8s-node crio[1630123]: time="2021-03-08 22:58:46.350329740Z" level=debug msg="Response: &PullImageResponse{ImageRef:docker.io/nestybox/alpine-docker@sha256:df9dcb5078f6c1c54cb90e0ffbe2c7f8badeac1ede7f4c3d4b000f94885db080,}" file="go-grpc-middleware@v1.2.0/chain.go:25" id=8055c37f-45ca-4cb0-93b4-5182c
+3a9a284 name=/runtime.v1alpha2.ImageService/PullImage
+Mar 08 22:58:46 k8s-node crio[1630123]: time="2021-03-08 22:58:46.352253299Z" level=debug msg="Request: &CreateContainerRequest{PodSandboxId:204904dc2c15e31f7a749d25a21c23f06ed5aec1dd5ea65d8109248dbe99086c,Config:&ContainerConfig{Metadata:&ContainerMetadata{Name:alpine-docker,Attempt:0,},Image:&ImageSpec{Image:nestyb
+ox/alpine-docker,Annotations:map[string]string{},},Command:[tail -f /dev/null],Args:[],WorkingDir:,Envs:[]*KeyValue{},Mounts:[]*Mount{},Devices:[]*Device{},Labels:map[string]string{},Annotations:map[string]string{},LogPath:container.log,Stdin:false,StdinOnce:false,Tty:false,Linux:&LinuxContainerConfig{Resources:nil,S
+ecurityContext:nil,},Windows:nil,},SandboxConfig:&PodSandboxConfig{Metadata:&PodSandboxMetadata{Name:alpine-sandbox,Uid:sysbox-pod,Namespace:default,Attempt:1,},Hostname:,LogDirectory:/tmp,DnsConfig:nil,PortMappings:[]*PortMapping{},Labels:map[string]string{},Annotations:map[string]string{io.kubernetes.cri-o.userns-m
+ode: auto:size=65536,},Linux:&LinuxPodSandboxConfig{CgroupParent:,SecurityContext:nil,Sysctls:map[string]string{},},},}" file="go-grpc-middleware@v1.2.0/chain.go:25" id=4db63682-1244-420b-af90-43282ea76647 name=/runtime.v1alpha2.RuntimeService/CreateContainer
+
+Mar 08 22:58:46 k8s-node crio[1630123]: time="2021-03-08 22:58:46.352498481Z" level=info msg="Creating container: //" file="server/container_create.go:449" id=4db63682-1244-420b-af90-43282ea76647 name=/runtime.v1alpha2.RuntimeService/CreateContainer
+Mar 08 22:58:46 k8s-node crio[1630123]: time="2021-03-08 22:58:46.353659808Z" level=debug msg="Parsed reference into \"[overlay@/var/lib/containers/storage+/var/run/containers/storage]docker.io/nestybox/alpine-docker:latest\"" file="storage/storage_transport.go:184"
+Mar 08 22:58:46 k8s-node crio[1630123]: time="2021-03-08 22:58:46.354972697Z" level=debug msg="Exporting opaque data as blob \"sha256:41c78e63202a8a71e53969ee59ca2ac84387885dfaaf5873fa3e86a3404af368\"" file="storage/storage_image.go:159"
+Mar 08 22:58:46 k8s-node crio[1630123]: time="2021-03-08 22:58:46.355951333Z" level=debug msg="Parsed reference into \"[overlay@/var/lib/containers/storage+/var/run/containers/storage]docker.io/nestybox/alpine-docker:latest\"" file="storage/storage_transport.go:184"
+Mar 08 22:58:46 k8s-node crio[1630123]: time="2021-03-08 22:58:46.356612031Z" level=debug msg="Exporting opaque data as blob \"sha256:41c78e63202a8a71e53969ee59ca2ac84387885dfaaf5873fa3e86a3404af368\"" file="storage/storage_image.go:159"
+
+
+// WHY IS THIS OVERLAY MOUNT HAPPENING HERE? IT DOES NOT OCCUR WITH RUNC; IT TAKES 2 SECS
+
+Mar 08 22:58:46 k8s-node crio[1630123]: time="2021-03-08 22:58:46.357635773Z" level=debug msg="Overlay: mount_data=,lowerdir=/var/lib/containers/storage/overlay/l/EY4REAZ6XVM64N4X5HDR7FXJYN:/var/lib/containers/storage/overlay/l/U5Y2BEJKXPWFCFOVW4U3NCIHOD,upperdir=/var/lib/containers/storage/overlay/bee653d1f9baff33a3
+45b4e202625a2b031bca03b037e733cfc118a76d6b4bf3/diff,workdir=/var/lib/containers/storage/overlay/bee653d1f9baff33a345b4e202625a2b031bca03b037e733cfc118a76d6b4bf3/work" file="overlay/overlay.go:992"
+
+<<< delay here ... (2 sec ... WHY )
+
+Mar 08 22:58:48 k8s-node crio[1630123]: time="2021-03-08 22:58:48.407769197Z" level=debug msg="Created container \"9b624c19f85d825c714e07e2a76e46c99294e82be864f9648408a899300650c1\"" file="storage/runtime.go:285"
+Mar 08 22:58:48 k8s-node crio[1630123]: time="2021-03-08 22:58:48.418863136Z" level=debug msg="Container \"9b624c19f85d825c714e07e2a76e46c99294e82be864f9648408a899300650c1\" has work directory \"/var/lib/containers/storage/overlay-containers/9b624c19f85d825c714e07e2a76e46c99294e82be864f9648408a899300650c1/userdata\""
+ file="storage/runtime.go:325"
+Mar 08 22:58:48 k8s-node crio[1630123]: time="2021-03-08 22:58:48.419661172Z" level=debug msg="Container \"9b624c19f85d825c714e07e2a76e46c99294e82be864f9648408a899300650c1\" has run directory \"/var/run/containers/storage/overlay-containers/9b624c19f85d825c714e07e2a76e46c99294e82be864f9648408a899300650c1/userdata\""
+file="storage/runtime.go:335"
+Mar 08 22:58:48 k8s-node crio[1630123]: time="2021-03-08 22:58:48.420606212Z" level=debug msg="Setting container's log_path = /tmp, sbox.logdir = container.log, ctr.logfile = /tmp/container.log" file="container/container.go:354"
+Mar 08 22:58:48 k8s-node crio[1630123]: time="2021-03-08 22:58:48.421502669Z" level=debug msg="OCI process args [tail -f /dev/null]" file="server/container_create.go:229" id=4db63682-1244-420b-af90-43282ea76647 name=/runtime.v1alpha2.RuntimeService/CreateContainer
+
+
+// THIS OVERLAY MOUNT IS OK (SAME AS RUNC)
+
+Mar 08 22:58:48 k8s-node crio[1630123]: time="2021-03-08 22:58:48.422493238Z" level=debug msg="Overlay: mount_data=lowerdir=/var/lib/containers/storage/overlay/l/UJWXBXCOKU4LBQZER455MEHZNJ:/var/lib/containers/storage/overlay/l/UJWXBXCOKU4LBQZER455MEHZNJ/../diff1:/var/lib/containers/storage/overlay/l/EY4REAZ6XVM64N4X5
+HDR7FXJYN:/var/lib/containers/storage/overlay/l/U5Y2BEJKXPWFCFOVW4U3NCIHOD,upperdir=/var/lib/containers/storage/overlay/8b8f9c51f669a84b4146f75073b90a92226a4f886773743d25fb01a68de12306/diff,workdir=/var/lib/containers/storage/overlay/8b8f9c51f669a84b4146f75073b90a92226a4f886773743d25fb01a68de12306/work" file="overlay
+/overlay.go:992"
+
+
+Mar 08 22:58:48 k8s-node crio[1630123]: time="2021-03-08 22:58:48.426768938Z" level=debug msg="Mounted container \"9b624c19f85d825c714e07e2a76e46c99294e82be864f9648408a899300650c1\" at \"/var/lib/containers/storage/overlay/8b8f9c51f669a84b4146f75073b90a92226a4f886773743d25fb01a68de12306/merged\"" file="storage/runtim
+e.go:469"
+Mar 08 22:58:48 k8s-node crio[1630123]: time="2021-03-08 22:58:48.427123163Z" level=debug msg="Setting container's log_path = /tmp, sbox.logdir = container.log, ctr.logfile = /tmp/container.log" file="container/container.go:354"
+Mar 08 22:58:48 k8s-node crio[1630123]: time="2021-03-08 22:58:48.428009998Z" level=debug msg="/etc/system-fips does not exist on host, not mounting FIPS mode secret" file="secrets/secrets.go:203"
+Mar 08 22:58:48 k8s-node crio[1630123]: time="2021-03-08 22:58:48.429425989Z" level=debug msg="Running conmon: /usr/local/bin/conmon" args="[-b /var/run/containers/storage/overlay-containers/9b624c19f85d825c714e07e2a76e46c99294e82be864f9648408a899300650c1/userdata -c 9b624c19f85d825c714e07e2a76e46c99294e82be864f96484
+08a899300650c1 --exit-dir /var/run/crio/exits -l /tmp/container.log --log-level debug -n k8s_alpine-docker_alpine-sandbox_default_sysbox-pod_0 -P /var/run/containers/storage/overlay-containers/9b624c19f85d825c714e07e2a76e46c99294e82be864f9648408a899300650c1/userdata/conmon-pidfile -p /var/run/containers/storage/overl
+ay-containers/9b624c19f85d825c714e07e2a76e46c99294e82be864f9648408a899300650c1/userdata/pidfile --persist-dir /var/lib/containers/storage/overlay-containers/9b624c19f85d825c714e07e2a76e46c99294e82be864f9648408a899300650c1/userdata -r /usr/local/sbin/sysbox-runc --runtime-arg --root=/run/runc --socket-dir-path /var/ru
+n/crio -u 9b624c19f85d825c714e07e2a76e46c99294e82be864f9648408a899300650c1 --syslog]" file="oci/runtime_oci.go:133"
+Mar 08 22:58:48 k8s-node conmon[4191877]: conmon 9b624c19f85d825c714e <ninfo>: socket path: /var/run/crio/9b624c19f85d825c714e07e2a76e46c99294e82be864f9648408a899300650c1/attach
+Mar 08 22:58:48 k8s-node conmon[4191877]: conmon 9b624c19f85d825c714e <ninfo>: addr{sun_family=AF_UNIX, sun_path=/var/run/crio/9b624c19f85d825c714e07e2a76e46c99294e82be864f9648408a899300650c1/attach}
+Mar 08 22:58:48 k8s-node conmon[4191877]: conmon 9b624c19f85d825c714e <ninfo>: terminal_ctrl_fd: 14
+Mar 08 22:58:48 k8s-node conmon[4191877]: conmon 9b624c19f85d825c714e <ninfo>: winsz read side: 16, winsz write side: 16
+
+<<< delay here ... (2 sec - sysbox container creation)
+
+Mar 08 22:58:50 k8s-node conmon[4191877]: conmon 9b624c19f85d825c714e <ndebug>: container PID: 4191912
+Mar 08 22:58:50 k8s-node crio[1630123]: time="2021-03-08 22:58:50.349258331Z" level=debug msg="Received container pid: 4191912" file="oci/runtime_oci.go:217"
+Mar 08 22:58:50 k8s-node crio[1630123]: time="2021-03-08 22:58:50.390559386Z" level=info msg="Created container 9b624c19f85d825c714e07e2a76e46c99294e82be864f9648408a899300650c1: //" file="server/container_create.go:554" id=4db63682-1244-420b-af90-43282ea76647 name=/runtime.v1alpha2.RuntimeService/CreateContainer
+Mar 08 22:58:50 k8s-node crio[1630123]: time="2021-03-08 22:58:50.390736057Z" level=debug msg="Response: &CreateContainerResponse{ContainerId:9b624c19f85d825c714e07e2a76e46c99294e82be864f9648408a899300650c1,}" file="go-grpc-middleware@v1.2.0/chain.go:25" id=4db63682-1244-420b-af90-43282ea76647 name=/runtime.v1alpha2.
+RuntimeService/CreateContainer
+Mar 08 22:58:50 k8s-node crio[1630123]: time="2021-03-08 22:58:50.391957992Z" level=debug msg="Request: &StartContainerRequest{ContainerId:9b624c19f85d825c714e07e2a76e46c99294e82be864f9648408a899300650c1,}" file="go-grpc-middleware@v1.2.0/chain.go:25" id=a8921e2f-8c78-47df-a45e-35ee0fb2dbed name=/runtime.v1alpha2.Run
+timeService/StartContainer
+
+
+
+Mar 08 22:58:50 k8s-node crio[1630123]: time="2021-03-08 22:58:50.392040520Z" level=info msg="Starting container: 9b624c19f85d825c714e07e2a76e46c99294e82be864f9648408a899300650c1" file="server/container_start.go:18" id=a8921e2f-8c78-47df-a45e-35ee0fb2dbed name=/runtime.v1alpha2.RuntimeService/StartContainer
+Mar 08 22:58:50 k8s-node crio[1630123]: time="2021-03-08 22:58:50.423223715Z" level=info msg="Started container 9b624c19f85d825c714e07e2a76e46c99294e82be864f9648408a899300650c1: //" file="server/container_start.go:59" id=a8921e2f-8c78-47df-a45e-35ee0fb2dbed name=/runtime.v1alpha2.RuntimeService/StartContainer
+Mar 08 22:58:50 k8s-node crio[1630123]: time="2021-03-08 22:58:50.462878357Z" level=debug msg="Response: &StartContainerResponse{}" file="go-grpc-middleware@v1.2.0/chain.go:25" id=a8921e2f-8c78-47df-a45e-35ee0fb2dbed name=/runtime.v1alpha2.RuntimeService/StartContainer
+
+
+Total: 8 seconds to deploy pod
+
+
+
+
+
+## POD #2
+
+### pause container
+
+Mar 08 22:59:12 k8s-node crio[1630123]: time="2021-03-08 22:59:12.169811764Z" level=debug msg="Request: &RunPodSandboxRequest{Config:&PodSandboxConfig{Metadata:&PodSandboxMetadata{Name:alpine-sandbox2,Uid:sysbox-pod2,Namespace:default,Attempt:1,},Hostname:,LogDirectory:/tmp,DnsConfig:nil,PortMappings:[]*PortMapping{}
+,Labels:map[string]string{},Annotations:map[string]string{io.kubernetes.cri-o.userns-mode: auto:size=65536,},Linux:&LinuxPodSandboxConfig{CgroupParent:,SecurityContext:nil,Sysctls:map[string]string{},},},RuntimeHandler:sysbox-runc,}" file="go-grpc-middleware@v1.2.0/chain.go:25" id=ba427ef2-b377-421d-9639-f204863f20be
+ name=/runtime.v1alpha2.RuntimeService/RunPodSandbox
+Mar 08 22:59:12 k8s-node crio[1630123]: time="2021-03-08 22:59:12.169975816Z" level=info msg="Running pod sandbox: //POD" file="server/sandbox_run_linux.go:301" id=ba427ef2-b377-421d-9639-f204863f20be name=/runtime.v1alpha2.RuntimeService/RunPodSandbox
+Mar 08 22:59:12 k8s-node crio[1630123]: time="2021-03-08 22:59:12.170095300Z" level=debug msg="Parsed reference into \"[overlay@/var/lib/containers/storage+/var/run/containers/storage]k8s.gcr.io/pause:3.2\"" file="storage/storage_transport.go:184"
+Mar 08 22:59:12 k8s-node crio[1630123]: time="2021-03-08 22:59:12.170637505Z" level=debug msg="Exporting opaque data as blob \"sha256:80d28bedfe5dec59da9ebf8e6260224ac9008ab5c11dbbe16ee3ba3e4439ac2c\"" file="storage/storage_image.go:159"
+
+// WHY IS THIS OVERLAY MOUNT HAPPENING HERE? IT DOES NOT OCCUR WITH RUNC
+
+Mar 08 22:59:12 k8s-node crio[1630123]: time="2021-03-08 22:59:12.171614693Z" level=debug msg="Overlay: mount_data=,lowerdir=/var/lib/containers/storage/overlay/l/GQ3QWSV5FECIVNTHRFQAXPUHIQ,upperdir=/var/lib/containers/storage/overlay/368fcc718329fe68437993b1f67754f13edb6eb03b5aeb74204f31c5859eaf68/diff,workdir=/var/
+lib/containers/storage/overlay/368fcc718329fe68437993b1f67754f13edb6eb03b5aeb74204f31c5859eaf68/work" file="overlay/overlay.go:992"
+
+
+Mar 08 22:59:12 k8s-node crio[1630123]: time="2021-03-08 22:59:12.332803971Z" level=debug msg="Created pod sandbox \"0a0a6426856930a4e60eb3a108c1a91a87d9bc382614026454dc66bc1d287c4a\"" file="storage/runtime.go:283"
+Mar 08 22:59:12 k8s-node crio[1630123]: time="2021-03-08 22:59:12.342816564Z" level=debug msg="Pod sandbox \"0a0a6426856930a4e60eb3a108c1a91a87d9bc382614026454dc66bc1d287c4a\" has work directory \"/var/lib/containers/storage/overlay-containers/0a0a6426856930a4e60eb3a108c1a91a87d9bc382614026454dc66bc1d287c4a/userdata\
+"" file="storage/runtime.go:323"
+Mar 08 22:59:12 k8s-node crio[1630123]: time="2021-03-08 22:59:12.343323607Z" level=debug msg="Pod sandbox \"0a0a6426856930a4e60eb3a108c1a91a87d9bc382614026454dc66bc1d287c4a\" has run directory \"/var/run/containers/storage/overlay-containers/0a0a6426856930a4e60eb3a108c1a91a87d9bc382614026454dc66bc1d287c4a/userdata\"
+" file="storage/runtime.go:333"
+Mar 08 22:59:12 k8s-node crio[1630123]: time="2021-03-08 22:59:12.356881720Z" level=debug msg="Calling pinns with [-d /var/run -f d621b1c9-fdd8-4eef-a72d-f81871e82f8d -n -i -U -u --uid-mapping=0-362144-65536@ --gid-mapping=0-362144-65536@]" file="sandbox/namespaces_linux.go:131"
+
+
+Mar 08 22:59:12 k8s-node crio[1630123]: time="2021-03-08 22:59:12.362048149Z" level=debug msg="Overlay: mount_data=lowerdir=/var/lib/containers/storage/overlay/l/3LKVPEWSU4VL2IC2AMU3NMQHDR:/var/lib/containers/storage/overlay/l/3LKVPEWSU4VL2IC2AMU3NMQHDR/../diff1:/var/lib/containers/storage/overlay/l/GQ3QWSV5FECIVNTHR
+FQAXPUHIQ,upperdir=/var/lib/containers/storage/overlay/4cf9d107118aff8d38c7657f76ab41292411486446a7814a11d68fbf2ebf28ce/diff,workdir=/var/lib/containers/storage/overlay/4cf9d107118aff8d38c7657f76ab41292411486446a7814a11d68fbf2ebf28ce/work" file="overlay/overlay.go:992"
+
+
+Mar 08 22:59:12 k8s-node crio[1630123]: time="2021-03-08 22:59:12.362835468Z" level=debug msg="Mounted container \"0a0a6426856930a4e60eb3a108c1a91a87d9bc382614026454dc66bc1d287c4a\" at \"/var/lib/containers/storage/overlay/4cf9d107118aff8d38c7657f76ab41292411486446a7814a11d68fbf2ebf28ce/merged\"" file="storage/runtim
+e.go:469"
+Mar 08 22:59:12 k8s-node crio[1630123]: time="2021-03-08 22:59:12.363038325Z" level=debug msg="Keeping infra container for pod 0a0a6426856930a4e60eb3a108c1a91a87d9bc382614026454dc66bc1d287c4a" file="server/sandbox_run_linux.go:816" id=ba427ef2-b377-421d-9639-f204863f20be name=/runtime.v1alpha2.RuntimeService/RunPodSa
+ndbox
+Mar 08 22:59:12 k8s-node crio[1630123]: time="2021-03-08 22:59:12.364042717Z" level=info msg="Got pod network &{Name:alpine-sandbox2 Namespace:default ID:0a0a6426856930a4e60eb3a108c1a91a87d9bc382614026454dc66bc1d287c4a NetNS:/var/run/netns/d621b1c9-fdd8-4eef-a72d-f81871e82f8d Networks:[] RuntimeConfig:map[cbr0:{IP: M
+AC: PortMappings:[] Bandwidth:<nil> IpRanges:[]}]}" file="ocicni/ocicni.go:860"
+Mar 08 22:59:12 k8s-node crio[1630123]: time="2021-03-08 22:59:12.364132759Z" level=info msg="About to add CNI network cbr0 (type=flannel)" file="ocicni/ocicni.go:768"
+Mar 08 22:59:12 k8s-node crio[1630123]: time="2021-03-08 22:59:12.458855187Z" level=info msg="Got pod network &{Name:alpine-sandbox2 Namespace:default ID:0a0a6426856930a4e60eb3a108c1a91a87d9bc382614026454dc66bc1d287c4a NetNS:/var/run/netns/d621b1c9-fdd8-4eef-a72d-f81871e82f8d Networks:[] RuntimeConfig:map[cbr0:{IP: M
+AC: PortMappings:[] Bandwidth:<nil> IpRanges:[]}]}" file="ocicni/ocicni.go:860"
+Mar 08 22:59:12 k8s-node crio[1630123]: time="2021-03-08 22:59:12.459247599Z" level=info msg="About to check CNI network cbr0 (type=flannel)" file="ocicni/ocicni.go:779"
+Mar 08 22:59:12 k8s-node crio[1630123]: time="2021-03-08 22:59:12.459653295Z" level=debug msg="CNI setup result: &{0.3.1 [{Name:cni0 Mac:3a:4d:23:8d:d3:41 Sandbox:} {Name:veth25526749 Mac:86:3f:86:69:aa:79 Sandbox:} {Name:eth0 Mac:2e:10:e0:b7:b5:5c Sandbox:/var/run/netns/d621b1c9-fdd8-4eef-a72d-f81871e82f8d}] [{Versi
+on:4 Interface:0xc000597978 Address:{IP:10.244.0.23 Mask:ffffff00} Gateway:10.244.0.1}] [{Dst:{IP:10.244.0.0 Mask:ffff0000} GW:<nil>} {Dst:{IP:0.0.0.0 Mask:00000000} GW:10.244.0.1}] {[]  [] []}}" file="server/sandbox_network.go:63" id=ba427ef2-b377-421d-9639-f204863f20be name=/runtime.v1alpha2.RuntimeService/RunPodSa
+ndbox
+Mar 08 22:59:12 k8s-node crio[1630123]: time="2021-03-08 22:59:12.459799753Z" level=debug msg="Found POD IPs: [10.244.0.23]" file="server/sandbox_network.go:95" id=ba427ef2-b377-421d-9639-f204863f20be name=/runtime.v1alpha2.RuntimeService/RunPodSandbox
+Mar 08 22:59:12 k8s-node crio[1630123]: time="2021-03-08 22:59:12.461518967Z" level=debug msg="Running conmon: /usr/local/bin/conmon" args="[-b /var/run/containers/storage/overlay-containers/0a0a6426856930a4e60eb3a108c1a91a87d9bc382614026454dc66bc1d287c4a/userdata -c 0a0a6426856930a4e60eb3a108c1a91a87d9bc382614026454
+dc66bc1d287c4a --exit-dir /var/run/crio/exits -l /tmp/0a0a6426856930a4e60eb3a108c1a91a87d9bc382614026454dc66bc1d287c4a.log --log-level debug -n k8s_POD_alpine-sandbox2_default_sysbox-pod2_1 -P /var/run/containers/storage/overlay-containers/0a0a6426856930a4e60eb3a108c1a91a87d9bc382614026454dc66bc1d287c4a/userdata/conm
+on-pidfile -p /var/run/containers/storage/overlay-containers/0a0a6426856930a4e60eb3a108c1a91a87d9bc382614026454dc66bc1d287c4a/userdata/pidfile --persist-dir /var/lib/containers/storage/overlay-containers/0a0a6426856930a4e60eb3a108c1a91a87d9bc382614026454dc66bc1d287c4a/userdata -r /usr/local/sbin/sysbox-runc --runtime
+-arg --root=/run/runc --socket-dir-path /var/run/crio -u 0a0a6426856930a4e60eb3a108c1a91a87d9bc382614026454dc66bc1d287c4a --syslog]" file="oci/runtime_oci.go:133"
+Mar 08 22:59:12 k8s-node conmon[4192041]: conmon 0a0a6426856930a4e60e <ninfo>: socket path: /var/run/crio/0a0a6426856930a4e60eb3a108c1a91a87d9bc382614026454dc66bc1d287c4a/attach
+Mar 08 22:59:12 k8s-node conmon[4192041]: conmon 0a0a6426856930a4e60e <ninfo>: addr{sun_family=AF_UNIX, sun_path=/var/run/crio/0a0a6426856930a4e60eb3a108c1a91a87d9bc382614026454dc66bc1d287c4a/attach}
+Mar 08 22:59:12 k8s-node conmon[4192041]: conmon 0a0a6426856930a4e60e <ninfo>: terminal_ctrl_fd: 14
+Mar 08 22:59:12 k8s-node conmon[4192041]: conmon 0a0a6426856930a4e60e <ninfo>: winsz read side: 16, winsz write side: 16
+
+<<< delay here (2 sec -- sysbox container creation)
+
+Mar 08 22:59:14 k8s-node conmon[4192041]: conmon 0a0a6426856930a4e60e <ndebug>: container PID: 4192082
+Mar 08 22:59:14 k8s-node crio[1630123]: time="2021-03-08 22:59:14.116329528Z" level=debug msg="Received container pid: 4192082" file="oci/runtime_oci.go:217"
+Mar 08 22:59:14 k8s-node crio[1630123]: time="2021-03-08 22:59:14.193931708Z" level=info msg="Ran pod sandbox 0a0a6426856930a4e60eb3a108c1a91a87d9bc382614026454dc66bc1d287c4a with infra container: //" file="server/sandbox_run_linux.go:963" id=ba427ef2-b377-421d-9639-f204863f20be name=/runtime.v1alpha2.RuntimeService/
+RunPodSandbox
+Mar 08 22:59:14 k8s-node crio[1630123]: time="2021-03-08 22:59:14.194746672Z" level=debug msg="Response: &RunPodSandboxResponse{PodSandboxId:0a0a6426856930a4e60eb3a108c1a91a87d9bc382614026454dc66bc1d287c4a,}" file="go-grpc-middleware@v1.2.0/chain.go:25" id=ba427ef2-b377-421d-9639-f204863f20be name=/runtime.v1alpha2.R
+untimeService/RunPodSandbox
+
+
+### main container
+
+Mar 08 22:59:14 k8s-node crio[1630123]: time="2021-03-08 22:59:14.199043490Z" level=debug msg="Request: &PullImageRequest{Image:&ImageSpec{Image:nestybox/alpine-docker,Annotations:map[string]string{},},Auth:nil,SandboxConfig:&PodSandboxConfig{Metadata:&PodSandboxMetadata{Name:alpine-sandbox2,Uid:sysbox-pod2,Namespace
+:default,Attempt:1,},Hostname:,LogDirectory:/tmp,DnsConfig:nil,PortMappings:[]*PortMapping{},Labels:map[string]string{},Annotations:map[string]string{io.kubernetes.cri-o.userns-mode: auto:size=65536,},Linux:&LinuxPodSandboxConfig{CgroupParent:,SecurityContext:nil,Sysctls:map[string]string{},},},}" file="go-grpc-middl
+eware@v1.2.0/chain.go:25" id=4c1424b7-cc0d-4b03-b370-133c0c0689f5 name=/runtime.v1alpha2.ImageService/PullImage
+Mar 08 22:59:14 k8s-node crio[1630123]: time="2021-03-08 22:59:14.199237429Z" level=info msg="Pulling image: nestybox/alpine-docker" file="server/image_pull.go:31" id=4c1424b7-cc0d-4b03-b370-133c0c0689f5 name=/runtime.v1alpha2.ImageService/PullImage
+Mar 08 22:59:14 k8s-node crio[1630123]: time="2021-03-08 22:59:14.199352156Z" level=debug msg="Skipping non-existing decryption_keys_path: /etc/crio/keys/" file="server/utils.go:238"
+Mar 08 22:59:14 k8s-node crio[1630123]: time="2021-03-08 22:59:14.201515200Z" level=debug msg="Trying to access \"docker.io/nestybox/alpine-docker:latest\"" file="docker/docker_image_src.go:68"
+Mar 08 22:59:14 k8s-node crio[1630123]: time="2021-03-08 22:59:14.201908084Z" level=debug msg="Credentials not found" file="config/config.go:179"
+Mar 08 22:59:14 k8s-node crio[1630123]: time="2021-03-08 22:59:14.201994780Z" level=debug msg="Using registries.d directory /etc/containers/registries.d for sigstore configuration" file="docker/lookaside.go:51"
+Mar 08 22:59:14 k8s-node crio[1630123]: time="2021-03-08 22:59:14.202361696Z" level=debug msg=" Using \"default-docker\" configuration" file="docker/lookaside.go:169"
+Mar 08 22:59:14 k8s-node crio[1630123]: time="2021-03-08 22:59:14.202444278Z" level=debug msg=" No signature storage configuration found for docker.io/nestybox/alpine-docker:latest" file="docker/lookaside.go:174"
+Mar 08 22:59:14 k8s-node crio[1630123]: time="2021-03-08 22:59:14.202540151Z" level=debug msg="Looking for TLS certificates and private keys in /etc/docker/certs.d/docker.io" file="tlsclientconfig/tlsclientconfig.go:21"
+Mar 08 22:59:14 k8s-node crio[1630123]: time="2021-03-08 22:59:14.202671469Z" level=debug msg="GET https://registry-1.docker.io/v2/" file="docker/docker_client.go:539"
+Mar 08 22:59:14 k8s-node crio[1630123]: time="2021-03-08 22:59:14.605250991Z" level=debug msg="Ping https://registry-1.docker.io/v2/ status 401" file="docker/docker_client.go:735"
+Mar 08 22:59:14 k8s-node crio[1630123]: time="2021-03-08 22:59:14.605756675Z" level=debug msg="GET https://auth.docker.io/token?scope=repository%3Anestybox%2Falpine-docker%3Apull&service=registry.docker.io" file="docker/docker_client.go:698"
+Mar 08 22:59:14 k8s-node crio[1630123]: time="2021-03-08 22:59:14.969546712Z" level=debug msg="GET https://registry-1.docker.io/v2/nestybox/alpine-docker/manifests/latest" file="docker/docker_client.go:539"
+Mar 08 22:59:15 k8s-node crio[1630123]: time="2021-03-08 22:59:15.373824304Z" level=debug msg="Content-Type from manifest GET is \"application/vnd.docker.distribution.manifest.v2+json\"" file="docker/docker_image_src.go:193"
+Mar 08 22:59:15 k8s-node crio[1630123]: time="2021-03-08 22:59:15.374738550Z" level=debug msg="Parsed reference into \"[overlay@/var/lib/containers/storage+/var/run/containers/storage]docker.io/nestybox/alpine-docker:latest\"" file="storage/storage_transport.go:184"
+Mar 08 22:59:15 k8s-node crio[1630123]: time="2021-03-08 22:59:15.375597702Z" level=debug msg="Exporting opaque data as blob \"sha256:41c78e63202a8a71e53969ee59ca2ac84387885dfaaf5873fa3e86a3404af368\"" file="storage/storage_image.go:159"
+Mar 08 22:59:15 k8s-node crio[1630123]: time="2021-03-08 22:59:15.376226547Z" level=debug msg="Image docker.io/nestybox/alpine-docker already in store, skipping pull" file="server/image_pull.go:155" id=4c1424b7-cc0d-4b03-b370-133c0c0689f5 name=/runtime.v1alpha2.ImageService/PullImage
+Mar 08 22:59:15 k8s-node crio[1630123]: time="2021-03-08 22:59:15.376349243Z" level=debug msg="Skipped layer docker.io/nestybox/alpine-docker@sha256:41c78e63202a8a71e53969ee59ca2ac84387885dfaaf5873fa3e86a3404af368" file="server/image_pull.go:311" id=4c1424b7-cc0d-4b03-b370-133c0c0689f5 name=/runtime.v1alpha2.ImageSer
+vice/PullImage
+Mar 08 22:59:15 k8s-node crio[1630123]: time="2021-03-08 22:59:15.376624235Z" level=debug msg="Parsed reference into \"[overlay@/var/lib/containers/storage+/var/run/containers/storage]docker.io/nestybox/alpine-docker:latest\"" file="storage/storage_transport.go:184"
+Mar 08 22:59:15 k8s-node crio[1630123]: time="2021-03-08 22:59:15.377335667Z" level=debug msg="Exporting opaque data as blob \"sha256:41c78e63202a8a71e53969ee59ca2ac84387885dfaaf5873fa3e86a3404af368\"" file="storage/storage_image.go:159"
+Mar 08 22:59:15 k8s-node crio[1630123]: time="2021-03-08 22:59:15.377792744Z" level=info msg="Pulled image: docker.io/nestybox/alpine-docker@sha256:df9dcb5078f6c1c54cb90e0ffbe2c7f8badeac1ede7f4c3d4b000f94885db080" file="server/image_pull.go:95" id=4c1424b7-cc0d-4b03-b370-133c0c0689f5 name=/runtime.v1alpha2.ImageServi
+ce/PullImage
+Mar 08 22:59:15 k8s-node crio[1630123]: time="2021-03-08 22:59:15.377917713Z" level=debug msg="Response: &PullImageResponse{ImageRef:docker.io/nestybox/alpine-docker@sha256:df9dcb5078f6c1c54cb90e0ffbe2c7f8badeac1ede7f4c3d4b000f94885db080,}" file="go-grpc-middleware@v1.2.0/chain.go:25" id=4c1424b7-cc0d-4b03-b370-133c0
+c0689f5 name=/runtime.v1alpha2.ImageService/PullImage
+Mar 08 22:59:15 k8s-node crio[1630123]: time="2021-03-08 22:59:15.379303150Z" level=debug msg="Request: &CreateContainerRequest{PodSandboxId:0a0a6426856930a4e60eb3a108c1a91a87d9bc382614026454dc66bc1d287c4a,Config:&ContainerConfig{Metadata:&ContainerMetadata{Name:alpine2,Attempt:0,},Image:&ImageSpec{Image:nestybox/alp
+ine-docker,Annotations:map[string]string{},},Command:[top],Args:[],WorkingDir:,Envs:[]*KeyValue{},Mounts:[]*Mount{},Devices:[]*Device{},Labels:map[string]string{},Annotations:map[string]string{},LogPath:alpine2.0.log,Stdin:false,StdinOnce:false,Tty:false,Linux:&LinuxContainerConfig{Resources:nil,SecurityContext:nil,}
+,Windows:nil,},SandboxConfig:&PodSandboxConfig{Metadata:&PodSandboxMetadata{Name:alpine-sandbox2,Uid:sysbox-pod2,Namespace:default,Attempt:1,},Hostname:,LogDirectory:/tmp,DnsConfig:nil,PortMappings:[]*PortMapping{},Labels:map[string]string{},Annotations:map[string]string{io.kubernetes.cri-o.userns-mode: auto:size=655
+36,},Linux:&LinuxPodSandboxConfig{CgroupParent:,SecurityContext:nil,Sysctls:map[string]string{},},},}" file="go-grpc-middleware@v1.2.0/chain.go:25" id=f59432c6-b527-4364-b124-fba3c136e596 name=/runtime.v1alpha2.RuntimeService/CreateContainer
+Mar 08 22:59:15 k8s-node crio[1630123]: time="2021-03-08 22:59:15.379513752Z" level=info msg="Creating container: //" file="server/container_create.go:449" id=f59432c6-b527-4364-b124-fba3c136e596 name=/runtime.v1alpha2.RuntimeService/CreateContainer
+Mar 08 22:59:15 k8s-node crio[1630123]: time="2021-03-08 22:59:15.380276426Z" level=debug msg="Parsed reference into \"[overlay@/var/lib/containers/storage+/var/run/containers/storage]docker.io/nestybox/alpine-docker:latest\"" file="storage/storage_transport.go:184"
+Mar 08 22:59:15 k8s-node crio[1630123]: time="2021-03-08 22:59:15.381026995Z" level=debug msg="Exporting opaque data as blob \"sha256:41c78e63202a8a71e53969ee59ca2ac84387885dfaaf5873fa3e86a3404af368\"" file="storage/storage_image.go:159"
+Mar 08 22:59:15 k8s-node crio[1630123]: time="2021-03-08 22:59:15.381602266Z" level=debug msg="Parsed reference into \"[overlay@/var/lib/containers/storage+/var/run/containers/storage]docker.io/nestybox/alpine-docker:latest\"" file="storage/storage_transport.go:184"
+Mar 08 22:59:15 k8s-node crio[1630123]: time="2021-03-08 22:59:15.382331395Z" level=debug msg="Exporting opaque data as blob \"sha256:41c78e63202a8a71e53969ee59ca2ac84387885dfaaf5873fa3e86a3404af368\"" file="storage/storage_image.go:159"
+
+
+// WHY IS THIS OVERLAY MOUNT HAPPENING HERE? IT DOES NOT OCCUR WITH RUNC; IT TAKES 2 SECS!
+
+Mar 08 22:59:15 k8s-node crio[1630123]: time="2021-03-08 22:59:15.383747055Z" level=debug msg="Overlay: mount_data=,lowerdir=/var/lib/containers/storage/overlay/l/EY4REAZ6XVM64N4X5HDR7FXJYN:/var/lib/containers/storage/overlay/l/U5Y2BEJKXPWFCFOVW4U3NCIHOD,upperdir=/var/lib/containers/storage/overlay/ce7247d5f564be3625
+cb1b20f40345e04e997dec9f0d1a3182dfae7830ebccaa/diff,workdir=/var/lib/containers/storage/overlay/ce7247d5f564be3625cb1b20f40345e04e997dec9f0d1a3182dfae7830ebccaa/work" file="overlay/overlay.go:992"
+
+
+Mar 08 22:59:17 k8s-node crio[1630123]: time="2021-03-08 22:59:17.052529817Z" level=debug msg="Created container \"8e0e68e77ef76ae0bc4ce666e4994a00cb06836b3da023bc5177e3340c7489a9\"" file="storage/runtime.go:285"
+Mar 08 22:59:17 k8s-node crio[1630123]: time="2021-03-08 22:59:17.061511811Z" level=debug msg="Container \"8e0e68e77ef76ae0bc4ce666e4994a00cb06836b3da023bc5177e3340c7489a9\" has work directory \"/var/lib/containers/storage/overlay-containers/8e0e68e77ef76ae0bc4ce666e4994a00cb06836b3da023bc5177e3340c7489a9/userdata\""
+ file="storage/runtime.go:325"
+Mar 08 22:59:17 k8s-node crio[1630123]: time="2021-03-08 22:59:17.061784941Z" level=debug msg="Container \"8e0e68e77ef76ae0bc4ce666e4994a00cb06836b3da023bc5177e3340c7489a9\" has run directory \"/var/run/containers/storage/overlay-containers/8e0e68e77ef76ae0bc4ce666e4994a00cb06836b3da023bc5177e3340c7489a9/userdata\""
+file="storage/runtime.go:335"
+Mar 08 22:59:17 k8s-node crio[1630123]: time="2021-03-08 22:59:17.062463907Z" level=debug msg="Setting container's log_path = /tmp, sbox.logdir = alpine2.0.log, ctr.logfile = /tmp/alpine2.0.log" file="container/container.go:354"
+Mar 08 22:59:17 k8s-node crio[1630123]: time="2021-03-08 22:59:17.063130823Z" level=debug msg="OCI process args [top]" file="server/container_create.go:229" id=f59432c6-b527-4364-b124-fba3c136e596 name=/runtime.v1alpha2.RuntimeService/CreateContainer
+
+
+// THIS OVERLAY MOUNT IS OK (SAME AS RUNC)
+
+Mar 08 22:59:17 k8s-node crio[1630123]: time="2021-03-08 22:59:17.063764320Z" level=debug msg="Overlay: mount_data=lowerdir=/var/lib/containers/storage/overlay/l/TAN5MJAGPZN4ISYWGJV7DSKJLV:/var/lib/containers/storage/overlay/l/TAN5MJAGPZN4ISYWGJV7DSKJLV/../diff1:/var/lib/containers/storage/overlay/l/EY4REAZ6XVM64N4X5
+HDR7FXJYN:/var/lib/containers/storage/overlay/l/U5Y2BEJKXPWFCFOVW4U3NCIHOD,upperdir=/var/lib/containers/storage/overlay/a50d236d6cb5e1c60406da52bac29c6a6b72db1e2d1a3a228fd332f2fc968318/diff,workdir=/var/lib/containers/storage/overlay/a50d236d6cb5e1c60406da52bac29c6a6b72db1e2d1a3a228fd332f2fc968318/work" file="overlay
+/overlay.go:992"
+
+Mar 08 22:59:17 k8s-node crio[1630123]: time="2021-03-08 22:59:17.067687327Z" level=debug msg="Mounted container \"8e0e68e77ef76ae0bc4ce666e4994a00cb06836b3da023bc5177e3340c7489a9\" at \"/var/lib/containers/storage/overlay/a50d236d6cb5e1c60406da52bac29c6a6b72db1e2d1a3a228fd332f2fc968318/merged\"" file="storage/runtim
+e.go:469"
+Mar 08 22:59:17 k8s-node crio[1630123]: time="2021-03-08 22:59:17.067811151Z" level=debug msg="Setting container's log_path = /tmp, sbox.logdir = alpine2.0.log, ctr.logfile = /tmp/alpine2.0.log" file="container/container.go:354"
+Mar 08 22:59:17 k8s-node crio[1630123]: time="2021-03-08 22:59:17.068008118Z" level=debug msg="/etc/system-fips does not exist on host, not mounting FIPS mode secret" file="secrets/secrets.go:203"
+Mar 08 22:59:17 k8s-node crio[1630123]: time="2021-03-08 22:59:17.070397488Z" level=debug msg="Running conmon: /usr/local/bin/conmon" args="[-b /var/run/containers/storage/overlay-containers/8e0e68e77ef76ae0bc4ce666e4994a00cb06836b3da023bc5177e3340c7489a9/userdata -c 8e0e68e77ef76ae0bc4ce666e4994a00cb06836b3da023bc51
+77e3340c7489a9 --exit-dir /var/run/crio/exits -l /tmp/alpine2.0.log --log-level debug -n k8s_alpine2_alpine-sandbox2_default_sysbox-pod2_0 -P /var/run/containers/storage/overlay-containers/8e0e68e77ef76ae0bc4ce666e4994a00cb06836b3da023bc5177e3340c7489a9/userdata/conmon-pidfile -p /var/run/containers/storage/overlay-c
+ontainers/8e0e68e77ef76ae0bc4ce666e4994a00cb06836b3da023bc5177e3340c7489a9/userdata/pidfile --persist-dir /var/lib/containers/storage/overlay-containers/8e0e68e77ef76ae0bc4ce666e4994a00cb06836b3da023bc5177e3340c7489a9/userdata -r /usr/local/sbin/sysbox-runc --runtime-arg --root=/run/runc --socket-dir-path /var/run/cr
+io -u 8e0e68e77ef76ae0bc4ce666e4994a00cb06836b3da023bc5177e3340c7489a9 --syslog]" file="oci/runtime_oci.go:133"
+Mar 08 22:59:17 k8s-node conmon[4192164]: conmon 8e0e68e77ef76ae0bc4c <ninfo>: socket path: /var/run/crio/8e0e68e77ef76ae0bc4ce666e4994a00cb06836b3da023bc5177e3340c7489a9/attach
+Mar 08 22:59:17 k8s-node conmon[4192164]: conmon 8e0e68e77ef76ae0bc4c <ninfo>: addr{sun_family=AF_UNIX, sun_path=/var/run/crio/8e0e68e77ef76ae0bc4ce666e4994a00cb06836b3da023bc5177e3340c7489a9/attach}
+Mar 08 22:59:17 k8s-node conmon[4192164]: conmon 8e0e68e77ef76ae0bc4c <ninfo>: terminal_ctrl_fd: 14
+Mar 08 22:59:17 k8s-node conmon[4192164]: conmon 8e0e68e77ef76ae0bc4c <ninfo>: winsz read side: 16, winsz write side: 16
+
+<<< 2 sec delay here (sysbox container creation)
+
+Mar 08 22:59:18 k8s-node conmon[4192164]: conmon 8e0e68e77ef76ae0bc4c <ndebug>: container PID: 4192197
+Mar 08 22:59:18 k8s-node crio[1630123]: time="2021-03-08 22:59:18.967020883Z" level=debug msg="Received container pid: 4192197" file="oci/runtime_oci.go:217"
+Mar 08 22:59:19 k8s-node crio[1630123]: time="2021-03-08 22:59:19.014106648Z" level=info msg="Created container 8e0e68e77ef76ae0bc4ce666e4994a00cb06836b3da023bc5177e3340c7489a9: //" file="server/container_create.go:554" id=f59432c6-b527-4364-b124-fba3c136e596 name=/runtime.v1alpha2.RuntimeService/CreateContainer
+Mar 08 22:59:19 k8s-node crio[1630123]: time="2021-03-08 22:59:19.014321344Z" level=debug msg="Response: &CreateContainerResponse{ContainerId:8e0e68e77ef76ae0bc4ce666e4994a00cb06836b3da023bc5177e3340c7489a9,}" file="go-grpc-middleware@v1.2.0/chain.go:25" id=f59432c6-b527-4364-b124-fba3c136e596 name=/runtime.v1alpha2.
+RuntimeService/CreateContainer
+Mar 08 22:59:19 k8s-node crio[1630123]: time="2021-03-08 22:59:19.016064689Z" level=debug msg="Request: &StartContainerRequest{ContainerId:8e0e68e77ef76ae0bc4ce666e4994a00cb06836b3da023bc5177e3340c7489a9,}" file="go-grpc-middleware@v1.2.0/chain.go:25" id=444f5406-879c-46e3-a9e1-f2bd75e34e6d name=/runtime.v1alpha2.Run
+timeService/StartContainer
+
+
+Mar 08 22:59:19 k8s-node crio[1630123]: time="2021-03-08 22:59:19.016423515Z" level=info msg="Starting container: 8e0e68e77ef76ae0bc4ce666e4994a00cb06836b3da023bc5177e3340c7489a9" file="server/container_start.go:18" id=444f5406-879c-46e3-a9e1-f2bd75e34e6d name=/runtime.v1alpha2.RuntimeService/StartContainer
+Mar 08 22:59:19 k8s-node crio[1630123]: time="2021-03-08 22:59:19.057680510Z" level=info msg="Started container 8e0e68e77ef76ae0bc4ce666e4994a00cb06836b3da023bc5177e3340c7489a9: //" file="server/container_start.go:59" id=444f5406-879c-46e3-a9e1-f2bd75e34e6d name=/runtime.v1alpha2.RuntimeService/StartContainer
+Mar 08 22:59:19 k8s-node crio[1630123]: time="2021-03-08 22:59:19.103538501Z" level=debug msg="Response: &StartContainerResponse{}" file="go-grpc-middleware@v1.2.0/chain.go:25" id=444f5406-879c-46e3-a9e1-f2bd75e34e6d name=/runtime.v1alpha2.RuntimeService/StartContainer
+
+total: 7 seconds
+
+
+
+
+
+## RUNC POD
+
+### pause container
+
+Mar 08 23:04:48 k8s-node crio[1630123]: time="2021-03-08 23:04:48.882025975Z" level=debug msg="Request: &RunPodSandboxRequest{Config:&PodSandboxConfig{Metadata:&PodSandboxMetadata{Name:alpine-sandbox-runc,Uid:runc-pod,Namespace:default,Attempt:1,},Hostname:,LogDirectory:/tmp,DnsConfig:nil,PortMappings:[]*PortMapping{
+},Labels:map[string]string{},Annotations:map[string]string{},Linux:&LinuxPodSandboxConfig{CgroupParent:,SecurityContext:nil,Sysctls:map[string]string{},},},RuntimeHandler:,}" file="go-grpc-middleware@v1.2.0/chain.go:25" id=1eca429d-1344-4663-93d3-b0b036f6f378 name=/runtime.v1alpha2.RuntimeService/RunPodSandbox
+Mar 08 23:04:48 k8s-node crio[1630123]: time="2021-03-08 23:04:48.883118623Z" level=info msg="Running pod sandbox: //POD" file="server/sandbox_run_linux.go:301" id=1eca429d-1344-4663-93d3-b0b036f6f378 name=/runtime.v1alpha2.RuntimeService/RunPodSandbox
+Mar 08 23:04:48 k8s-node crio[1630123]: time="2021-03-08 23:04:48.883596249Z" level=debug msg="Parsed reference into \"[overlay@/var/lib/containers/storage+/var/run/containers/storage]k8s.gcr.io/pause:3.2\"" file="storage/storage_transport.go:184"
+Mar 08 23:04:48 k8s-node crio[1630123]: time="2021-03-08 23:04:48.884825498Z" level=debug msg="Exporting opaque data as blob \"sha256:80d28bedfe5dec59da9ebf8e6260224ac9008ab5c11dbbe16ee3ba3e4439ac2c\"" file="storage/storage_image.go:159"
+Mar 08 23:04:48 k8s-node crio[1630123]: time="2021-03-08 23:04:48.904303046Z" level=debug msg="Created pod sandbox \"1b6a426301ee4445f062cfb21158d26e0171ba5a4ac7eb1226a88fab57f768be\"" file="storage/runtime.go:283"
+Mar 08 23:04:48 k8s-node crio[1630123]: time="2021-03-08 23:04:48.914209932Z" level=debug msg="Pod sandbox \"1b6a426301ee4445f062cfb21158d26e0171ba5a4ac7eb1226a88fab57f768be\" has work directory \"/var/lib/containers/storage/overlay-containers/1b6a426301ee4445f062cfb21158d26e0171ba5a4ac7eb1226a88fab57f768be/userdata\
+"" file="storage/runtime.go:323"
+Mar 08 23:04:48 k8s-node crio[1630123]: time="2021-03-08 23:04:48.914451640Z" level=debug msg="Pod sandbox \"1b6a426301ee4445f062cfb21158d26e0171ba5a4ac7eb1226a88fab57f768be\" has run directory \"/var/run/containers/storage/overlay-containers/1b6a426301ee4445f062cfb21158d26e0171ba5a4ac7eb1226a88fab57f768be/userdata\"
+" file="storage/runtime.go:333"
+Mar 08 23:04:48 k8s-node crio[1630123]: time="2021-03-08 23:04:48.926941764Z" level=debug msg="Calling pinns with [-d /var/run -f aed3d762-2748-4a01-96d0-daee9d71a77c -n -i -u]" file="sandbox/namespaces_linux.go:131"
+
+
+// overlay mount (only instance)
+Mar 08 23:04:48 k8s-node crio[1630123]: time="2021-03-08 23:04:48.936422738Z" level=debug msg="Overlay: mount_data=lowerdir=/var/lib/containers/storage/overlay/l/GQ3QWSV5FECIVNTHRFQAXPUHIQ,upperdir=/var/lib/containers/storage/overlay/22a80d1b104049cd44d5935f31a9d24e944918983abd3acab8235c8f250cfd18/diff,workdir=/var/l
+ib/containers/storage/overlay/22a80d1b104049cd44d5935f31a9d24e944918983abd3acab8235c8f250cfd18/work" file="overlay/overlay.go:992"
+
+
+Mar 08 23:04:48 k8s-node crio[1630123]: time="2021-03-08 23:04:48.940877731Z" level=debug msg="Mounted container \"1b6a426301ee4445f062cfb21158d26e0171ba5a4ac7eb1226a88fab57f768be\" at \"/var/lib/containers/storage/overlay/22a80d1b104049cd44d5935f31a9d24e944918983abd3acab8235c8f250cfd18/merged\"" file="storage/runtim
+e.go:469"
+Mar 08 23:04:48 k8s-node crio[1630123]: time="2021-03-08 23:04:48.941051102Z" level=debug msg="Keeping infra container for pod 1b6a426301ee4445f062cfb21158d26e0171ba5a4ac7eb1226a88fab57f768be" file="server/sandbox_run_linux.go:816" id=1eca429d-1344-4663-93d3-b0b036f6f378 name=/runtime.v1alpha2.RuntimeService/RunPodSa
+ndbox
+Mar 08 23:04:48 k8s-node crio[1630123]: time="2021-03-08 23:04:48.941943278Z" level=info msg="Got pod network &{Name:alpine-sandbox-runc Namespace:default ID:1b6a426301ee4445f062cfb21158d26e0171ba5a4ac7eb1226a88fab57f768be NetNS:/var/run/netns/aed3d762-2748-4a01-96d0-daee9d71a77c Networks:[] RuntimeConfig:map[cbr0:{I
+P: MAC: PortMappings:[] Bandwidth:<nil> IpRanges:[]}]}" file="ocicni/ocicni.go:860"
+Mar 08 23:04:48 k8s-node crio[1630123]: time="2021-03-08 23:04:48.942052626Z" level=info msg="About to add CNI network cbr0 (type=flannel)" file="ocicni/ocicni.go:768"
+Mar 08 23:04:49 k8s-node crio[1630123]: time="2021-03-08 23:04:49.038777664Z" level=info msg="Got pod network &{Name:alpine-sandbox-runc Namespace:default ID:1b6a426301ee4445f062cfb21158d26e0171ba5a4ac7eb1226a88fab57f768be NetNS:/var/run/netns/aed3d762-2748-4a01-96d0-daee9d71a77c Networks:[] RuntimeConfig:map[cbr0:{I
+P: MAC: PortMappings:[] Bandwidth:<nil> IpRanges:[]}]}" file="ocicni/ocicni.go:860"
+Mar 08 23:04:49 k8s-node crio[1630123]: time="2021-03-08 23:04:49.039452046Z" level=info msg="About to check CNI network cbr0 (type=flannel)" file="ocicni/ocicni.go:779"
+Mar 08 23:04:49 k8s-node crio[1630123]: time="2021-03-08 23:04:49.040165753Z" level=debug msg="CNI setup result: &{0.3.1 [{Name:cni0 Mac:3a:4d:23:8d:d3:41 Sandbox:} {Name:veth33b92a9d Mac:de:bf:89:29:9e:7c Sandbox:} {Name:eth0 Mac:0e:3c:75:f9:f0:72 Sandbox:/var/run/netns/aed3d762-2748-4a01-96d0-daee9d71a77c}] [{Versi
+on:4 Interface:0xc000593798 Address:{IP:10.244.0.24 Mask:ffffff00} Gateway:10.244.0.1}] [{Dst:{IP:10.244.0.0 Mask:ffff0000} GW:<nil>} {Dst:{IP:0.0.0.0 Mask:00000000} GW:10.244.0.1}] {[]  [] []}}" file="server/sandbox_network.go:63" id=1eca429d-1344-4663-93d3-b0b036f6f378 name=/runtime.v1alpha2.RuntimeService/RunPodSa
+ndbox
+Mar 08 23:04:49 k8s-node crio[1630123]: time="2021-03-08 23:04:49.040617689Z" level=debug msg="Found POD IPs: [10.244.0.24]" file="server/sandbox_network.go:95" id=1eca429d-1344-4663-93d3-b0b036f6f378 name=/runtime.v1alpha2.RuntimeService/RunPodSandbox
+Mar 08 23:04:49 k8s-node crio[1630123]: time="2021-03-08 23:04:49.042061283Z" level=debug msg="Running conmon: /usr/local/bin/conmon" args="[-b /var/run/containers/storage/overlay-containers/1b6a426301ee4445f062cfb21158d26e0171ba5a4ac7eb1226a88fab57f768be/userdata -c 1b6a426301ee4445f062cfb21158d26e0171ba5a4ac7eb1226
+a88fab57f768be --exit-dir /var/run/crio/exits -l /tmp/1b6a426301ee4445f062cfb21158d26e0171ba5a4ac7eb1226a88fab57f768be.log --log-level debug -n k8s_POD_alpine-sandbox-runc_default_runc-pod_1 -P /var/run/containers/storage/overlay-containers/1b6a426301ee4445f062cfb21158d26e0171ba5a4ac7eb1226a88fab57f768be/userdata/con
+mon-pidfile -p /var/run/containers/storage/overlay-containers/1b6a426301ee4445f062cfb21158d26e0171ba5a4ac7eb1226a88fab57f768be/userdata/pidfile --persist-dir /var/lib/containers/storage/overlay-containers/1b6a426301ee4445f062cfb21158d26e0171ba5a4ac7eb1226a88fab57f768be/userdata -r /usr/bin/runc --runtime-arg --root=/
+run/runc --socket-dir-path /var/run/crio -u 1b6a426301ee4445f062cfb21158d26e0171ba5a4ac7eb1226a88fab57f768be --syslog]" file="oci/runtime_oci.go:133"
+Mar 08 23:04:49 k8s-node conmon[4192346]: conmon 1b6a426301ee4445f062 <ninfo>: socket path: /var/run/crio/1b6a426301ee4445f062cfb21158d26e0171ba5a4ac7eb1226a88fab57f768be/attach
+Mar 08 23:04:49 k8s-node conmon[4192346]: conmon 1b6a426301ee4445f062 <ninfo>: addr{sun_family=AF_UNIX, sun_path=/var/run/crio/1b6a426301ee4445f062cfb21158d26e0171ba5a4ac7eb1226a88fab57f768be/attach}
+Mar 08 23:04:49 k8s-node conmon[4192346]: conmon 1b6a426301ee4445f062 <ninfo>: terminal_ctrl_fd: 14
+Mar 08 23:04:49 k8s-node conmon[4192346]: conmon 1b6a426301ee4445f062 <ninfo>: winsz read side: 16, winsz write side: 16
+
+<<< no delay here ... (unlike sysbox)
+
+Mar 08 23:04:49 k8s-node conmon[4192346]: conmon 1b6a426301ee4445f062 <ndebug>: container PID: 4192368
+Mar 08 23:04:49 k8s-node crio[1630123]: time="2021-03-08 23:04:49.149627919Z" level=debug msg="Received container pid: 4192368" file="oci/runtime_oci.go:217"
+Mar 08 23:04:49 k8s-node crio[1630123]: time="2021-03-08 23:04:49.199426385Z" level=info msg="Ran pod sandbox 1b6a426301ee4445f062cfb21158d26e0171ba5a4ac7eb1226a88fab57f768be with infra container: //" file="server/sandbox_run_linux.go:963" id=1eca429d-1344-4663-93d3-b0b036f6f378 name=/runtime.v1alpha2.RuntimeService/
+RunPodSandbox
+Mar 08 23:04:49 k8s-node crio[1630123]: time="2021-03-08 23:04:49.199681074Z" level=debug msg="Response: &RunPodSandboxResponse{PodSandboxId:1b6a426301ee4445f062cfb21158d26e0171ba5a4ac7eb1226a88fab57f768be,}" file="go-grpc-middleware@v1.2.0/chain.go:25" id=1eca429d-1344-4663-93d3-b0b036f6f378 name=/runtime.v1alpha2.R
+untimeService/RunPodSandbox
+
+
+
+### main container
+
+Mar 08 23:04:49 k8s-node crio[1630123]: time="2021-03-08 23:04:49.202265666Z" level=debug msg="Request: &PullImageRequest{Image:&ImageSpec{Image:nestybox/alpine-docker,Annotations:map[string]string{},},Auth:nil,SandboxConfig:&PodSandboxConfig{Metadata:&PodSandboxMetadata{Name:alpine-sandbox-runc,Uid:runc-pod,Namespac
+e:default,Attempt:1,},Hostname:,LogDirectory:/tmp,DnsConfig:nil,PortMappings:[]*PortMapping{},Labels:map[string]string{},Annotations:map[string]string{},Linux:&LinuxPodSandboxConfig{CgroupParent:,SecurityContext:nil,Sysctls:map[string]string{},},},}" file="go-grpc-middleware@v1.2.0/chain.go:25" id=f4d3d95e-9ce3-4306-
+a672-c6ec22d241ce name=/runtime.v1alpha2.ImageService/PullImage
+Mar 08 23:04:49 k8s-node crio[1630123]: time="2021-03-08 23:04:49.202699367Z" level=info msg="Pulling image: nestybox/alpine-docker" file="server/image_pull.go:31" id=f4d3d95e-9ce3-4306-a672-c6ec22d241ce name=/runtime.v1alpha2.ImageService/PullImage
+Mar 08 23:04:49 k8s-node crio[1630123]: time="2021-03-08 23:04:49.203036974Z" level=debug msg="Skipping non-existing decryption_keys_path: /etc/crio/keys/" file="server/utils.go:238"
+Mar 08 23:04:49 k8s-node crio[1630123]: time="2021-03-08 23:04:49.242012501Z" level=debug msg="Trying to access \"docker.io/nestybox/alpine-docker:latest\"" file="docker/docker_image_src.go:68"
+Mar 08 23:04:49 k8s-node crio[1630123]: time="2021-03-08 23:04:49.242700866Z" level=debug msg="Credentials not found" file="config/config.go:179"
+Mar 08 23:04:49 k8s-node crio[1630123]: time="2021-03-08 23:04:49.243020059Z" level=debug msg="Using registries.d directory /etc/containers/registries.d for sigstore configuration" file="docker/lookaside.go:51"
+Mar 08 23:04:49 k8s-node crio[1630123]: time="2021-03-08 23:04:49.243629573Z" level=debug msg=" Using \"default-docker\" configuration" file="docker/lookaside.go:169"
+Mar 08 23:04:49 k8s-node crio[1630123]: time="2021-03-08 23:04:49.244018848Z" level=debug msg=" No signature storage configuration found for docker.io/nestybox/alpine-docker:latest" file="docker/lookaside.go:174"
+Mar 08 23:04:49 k8s-node crio[1630123]: time="2021-03-08 23:04:49.244360587Z" level=debug msg="Looking for TLS certificates and private keys in /etc/docker/certs.d/docker.io" file="tlsclientconfig/tlsclientconfig.go:21"
+Mar 08 23:04:49 k8s-node crio[1630123]: time="2021-03-08 23:04:49.244790536Z" level=debug msg="GET https://registry-1.docker.io/v2/" file="docker/docker_client.go:539"
+Mar 08 23:04:49 k8s-node crio[1630123]: time="2021-03-08 23:04:49.646852304Z" level=debug msg="Ping https://registry-1.docker.io/v2/ status 401" file="docker/docker_client.go:735"
+Mar 08 23:04:49 k8s-node crio[1630123]: time="2021-03-08 23:04:49.647183745Z" level=debug msg="GET https://auth.docker.io/token?scope=repository%3Anestybox%2Falpine-docker%3Apull&service=registry.docker.io" file="docker/docker_client.go:698"
+Mar 08 23:04:50 k8s-node crio[1630123]: time="2021-03-08 23:04:50.070736298Z" level=debug msg="GET https://registry-1.docker.io/v2/nestybox/alpine-docker/manifests/latest" file="docker/docker_client.go:539"
+Mar 08 23:04:50 k8s-node crio[1630123]: time="2021-03-08 23:04:50.497576141Z" level=debug msg="Content-Type from manifest GET is \"application/vnd.docker.distribution.manifest.v2+json\"" file="docker/docker_image_src.go:193"
+Mar 08 23:04:50 k8s-node crio[1630123]: time="2021-03-08 23:04:50.498766327Z" level=debug msg="Parsed reference into \"[overlay@/var/lib/containers/storage+/var/run/containers/storage]docker.io/nestybox/alpine-docker:latest\"" file="storage/storage_transport.go:184"
+Mar 08 23:04:50 k8s-node crio[1630123]: time="2021-03-08 23:04:50.500278180Z" level=debug msg="Exporting opaque data as blob \"sha256:41c78e63202a8a71e53969ee59ca2ac84387885dfaaf5873fa3e86a3404af368\"" file="storage/storage_image.go:159"
+Mar 08 23:04:50 k8s-node crio[1630123]: time="2021-03-08 23:04:50.501242422Z" level=debug msg="Image docker.io/nestybox/alpine-docker already in store, skipping pull" file="server/image_pull.go:155" id=f4d3d95e-9ce3-4306-a672-c6ec22d241ce name=/runtime.v1alpha2.ImageService/PullImage
+Mar 08 23:04:50 k8s-node crio[1630123]: time="2021-03-08 23:04:50.501428595Z" level=debug msg="Skipped layer docker.io/nestybox/alpine-docker@sha256:41c78e63202a8a71e53969ee59ca2ac84387885dfaaf5873fa3e86a3404af368" file="server/image_pull.go:311" id=f4d3d95e-9ce3-4306-a672-c6ec22d241ce name=/runtime.v1alpha2.ImageSer
+vice/PullImage
+Mar 08 23:04:50 k8s-node crio[1630123]: time="2021-03-08 23:04:50.502241962Z" level=debug msg="Parsed reference into \"[overlay@/var/lib/containers/storage+/var/run/containers/storage]docker.io/nestybox/alpine-docker:latest\"" file="storage/storage_transport.go:184"
+Mar 08 23:04:50 k8s-node crio[1630123]: time="2021-03-08 23:04:50.503248616Z" level=debug msg="Exporting opaque data as blob \"sha256:41c78e63202a8a71e53969ee59ca2ac84387885dfaaf5873fa3e86a3404af368\"" file="storage/storage_image.go:159"
+Mar 08 23:04:50 k8s-node crio[1630123]: time="2021-03-08 23:04:50.503862753Z" level=info msg="Pulled image: docker.io/nestybox/alpine-docker@sha256:df9dcb5078f6c1c54cb90e0ffbe2c7f8badeac1ede7f4c3d4b000f94885db080" file="server/image_pull.go:95" id=f4d3d95e-9ce3-4306-a672-c6ec22d241ce name=/runtime.v1alpha2.ImageServi
+ce/PullImage
+Mar 08 23:04:50 k8s-node crio[1630123]: time="2021-03-08 23:04:50.504066580Z" level=debug msg="Response: &PullImageResponse{ImageRef:docker.io/nestybox/alpine-docker@sha256:df9dcb5078f6c1c54cb90e0ffbe2c7f8badeac1ede7f4c3d4b000f94885db080,}" file="go-grpc-middleware@v1.2.0/chain.go:25" id=f4d3d95e-9ce3-4306-a672-c6ec2
+2d241ce name=/runtime.v1alpha2.ImageService/PullImage
+
+Mar 08 23:04:50 k8s-node crio[1630123]: time="2021-03-08 23:04:50.505465233Z" level=debug msg="Request: &CreateContainerRequest{PodSandboxId:1b6a426301ee4445f062cfb21158d26e0171ba5a4ac7eb1226a88fab57f768be,Config:&ContainerConfig{Metadata:&ContainerMetadata{Name:alpine-docker,Attempt:0,},Image:&ImageSpec{Image:nestyb
+ox/alpine-docker,Annotations:map[string]string{},},Command:[tail -f /dev/null],Args:[],WorkingDir:,Envs:[]*KeyValue{},Mounts:[]*Mount{},Devices:[]*Device{},Labels:map[string]string{},Annotations:map[string]string{},LogPath:container.log,Stdin:false,StdinOnce:false,Tty:false,Linux:&LinuxContainerConfig{Resources:nil,S
+ecurityContext:nil,},Windows:nil,},SandboxConfig:&PodSandboxConfig{Metadata:&PodSandboxMetadata{Name:alpine-sandbox-runc,Uid:runc-pod,Namespace:default,Attempt:1,},Hostname:,LogDirectory:/tmp,DnsConfig:nil,PortMappings:[]*PortMapping{},Labels:map[string]string{},Annotations:map[string]string{},Linux:&LinuxPodSandboxC
+onfig{CgroupParent:,SecurityContext:nil,Sysctls:map[string]string{},},},}" file="go-grpc-middleware@v1.2.0/chain.go:25" id=1a443cdb-1397-4070-bc74-bceebfab23d7 name=/runtime.v1alpha2.RuntimeService/CreateContainer
+
+Mar 08 23:04:50 k8s-node crio[1630123]: time="2021-03-08 23:04:50.505599068Z" level=info msg="Creating container: //" file="server/container_create.go:449" id=1a443cdb-1397-4070-bc74-bceebfab23d7 name=/runtime.v1alpha2.RuntimeService/CreateContainer
+Mar 08 23:04:50 k8s-node crio[1630123]: time="2021-03-08 23:04:50.506205665Z" level=debug msg="Parsed reference into \"[overlay@/var/lib/containers/storage+/var/run/containers/storage]docker.io/nestybox/alpine-docker:latest\"" file="storage/storage_transport.go:184"
+Mar 08 23:04:50 k8s-node crio[1630123]: time="2021-03-08 23:04:50.506769002Z" level=debug msg="Exporting opaque data as blob \"sha256:41c78e63202a8a71e53969ee59ca2ac84387885dfaaf5873fa3e86a3404af368\"" file="storage/storage_image.go:159"
+Mar 08 23:04:50 k8s-node crio[1630123]: time="2021-03-08 23:04:50.507232290Z" level=debug msg="Parsed reference into \"[overlay@/var/lib/containers/storage+/var/run/containers/storage]docker.io/nestybox/alpine-docker:latest\"" file="storage/storage_transport.go:184"
+Mar 08 23:04:50 k8s-node crio[1630123]: time="2021-03-08 23:04:50.507752195Z" level=debug msg="Exporting opaque data as blob \"sha256:41c78e63202a8a71e53969ee59ca2ac84387885dfaaf5873fa3e86a3404af368\"" file="storage/storage_image.go:159"
+Mar 08 23:04:50 k8s-node crio[1630123]: time="2021-03-08 23:04:50.529560725Z" level=debug msg="Created container \"282f7f120aaadbb2ee1031b897962fcb45e8966ddfd2c2235643d5d09b7a3e09\"" file="storage/runtime.go:285"
+Mar 08 23:04:50 k8s-node crio[1630123]: time="2021-03-08 23:04:50.539948912Z" level=debug msg="Container \"282f7f120aaadbb2ee1031b897962fcb45e8966ddfd2c2235643d5d09b7a3e09\" has work directory \"/var/lib/containers/storage/overlay-containers/282f7f120aaadbb2ee1031b897962fcb45e8966ddfd2c2235643d5d09b7a3e09/userdata\""
+ file="storage/runtime.go:325"
+Mar 08 23:04:50 k8s-node crio[1630123]: time="2021-03-08 23:04:50.540135922Z" level=debug msg="Container \"282f7f120aaadbb2ee1031b897962fcb45e8966ddfd2c2235643d5d09b7a3e09\" has run directory \"/var/run/containers/storage/overlay-containers/282f7f120aaadbb2ee1031b897962fcb45e8966ddfd2c2235643d5d09b7a3e09/userdata\""
+file="storage/runtime.go:335"
+Mar 08 23:04:50 k8s-node crio[1630123]: time="2021-03-08 23:04:50.540862388Z" level=debug msg="Setting container's log_path = /tmp, sbox.logdir = container.log, ctr.logfile = /tmp/container.log" file="container/container.go:354"
+Mar 08 23:04:50 k8s-node crio[1630123]: time="2021-03-08 23:04:50.541442985Z" level=debug msg="OCI process args [tail -f /dev/null]" file="server/container_create.go:229" id=1a443cdb-1397-4070-bc74-bceebfab23d7 name=/runtime.v1alpha2.RuntimeService/CreateContainer
+
+
+// overlay mount  (only instance)
+Mar 08 23:04:50 k8s-node crio[1630123]: time="2021-03-08 23:04:50.541881067Z" level=debug msg="Overlay: mount_data=lowerdir=/var/lib/containers/storage/overlay/l/EY4REAZ6XVM64N4X5HDR7FXJYN:/var/lib/containers/storage/overlay/l/U5Y2BEJKXPWFCFOVW4U3NCIHOD,upperdir=/var/lib/containers/storage/overlay/dfc436a62e90987cca2
+4be5afa043cc83617e73bf8f7d5a40bde9c5c177789ef/diff,workdir=/var/lib/containers/storage/overlay/dfc436a62e90987cca24be5afa043cc83617e73bf8f7d5a40bde9c5c177789ef/work" file="overlay/overlay.go:992"
+
+
+Mar 08 23:04:50 k8s-node crio[1630123]: time="2021-03-08 23:04:50.542735694Z" level=debug msg="Mounted container \"282f7f120aaadbb2ee1031b897962fcb45e8966ddfd2c2235643d5d09b7a3e09\" at \"/var/lib/containers/storage/overlay/dfc436a62e90987cca24be5afa043cc83617e73bf8f7d5a40bde9c5c177789ef/merged\"" file="storage/runtim
+e.go:469"
+Mar 08 23:04:50 k8s-node crio[1630123]: time="2021-03-08 23:04:50.542879659Z" level=debug msg="Setting container's log_path = /tmp, sbox.logdir = container.log, ctr.logfile = /tmp/container.log" file="container/container.go:354"
+Mar 08 23:04:50 k8s-node crio[1630123]: time="2021-03-08 23:04:50.542996735Z" level=debug msg="/etc/system-fips does not exist on host, not mounting FIPS mode secret" file="secrets/secrets.go:203"
+Mar 08 23:04:50 k8s-node crio[1630123]: time="2021-03-08 23:04:50.543694506Z" level=debug msg="Running conmon: /usr/local/bin/conmon" args="[-b /var/run/containers/storage/overlay-containers/282f7f120aaadbb2ee1031b897962fcb45e8966ddfd2c2235643d5d09b7a3e09/userdata -c 282f7f120aaadbb2ee1031b897962fcb45e8966ddfd2c22356
+43d5d09b7a3e09 --exit-dir /var/run/crio/exits -l /tmp/container.log --log-level debug -n k8s_alpine-docker_alpine-sandbox-runc_default_runc-pod_0 -P /var/run/containers/storage/overlay-containers/282f7f120aaadbb2ee1031b897962fcb45e8966ddfd2c2235643d5d09b7a3e09/userdata/conmon-pidfile -p /var/run/containers/storage/ov
+erlay-containers/282f7f120aaadbb2ee1031b897962fcb45e8966ddfd2c2235643d5d09b7a3e09/userdata/pidfile --persist-dir /var/lib/containers/storage/overlay-containers/282f7f120aaadbb2ee1031b897962fcb45e8966ddfd2c2235643d5d09b7a3e09/userdata -r /usr/bin/runc --runtime-arg --root=/run/runc --socket-dir-path /var/run/crio -u 2
+82f7f120aaadbb2ee1031b897962fcb45e8966ddfd2c2235643d5d09b7a3e09 --syslog]" file="oci/runtime_oci.go:133"
+Mar 08 23:04:50 k8s-node conmon[4192389]: conmon 282f7f120aaadbb2ee10 <ninfo>: socket path: /var/run/crio/282f7f120aaadbb2ee1031b897962fcb45e8966ddfd2c2235643d5d09b7a3e09/attach
+Mar 08 23:04:50 k8s-node conmon[4192389]: conmon 282f7f120aaadbb2ee10 <ninfo>: addr{sun_family=AF_UNIX, sun_path=/var/run/crio/282f7f120aaadbb2ee1031b897962fcb45e8966ddfd2c2235643d5d09b7a3e09/attach}
+Mar 08 23:04:50 k8s-node conmon[4192389]: conmon 282f7f120aaadbb2ee10 <ninfo>: terminal_ctrl_fd: 14
+Mar 08 23:04:50 k8s-node conmon[4192389]: conmon 282f7f120aaadbb2ee10 <ninfo>: winsz read side: 16, winsz write side: 16
+Mar 08 23:04:50 k8s-node conmon[4192389]: conmon 282f7f120aaadbb2ee10 <ndebug>: container PID: 4192402
+Mar 08 23:04:50 k8s-node crio[1630123]: time="2021-03-08 23:04:50.640984903Z" level=debug msg="Received container pid: 4192402" file="oci/runtime_oci.go:217"
+Mar 08 23:04:50 k8s-node crio[1630123]: time="2021-03-08 23:04:50.671071846Z" level=info msg="Created container 282f7f120aaadbb2ee1031b897962fcb45e8966ddfd2c2235643d5d09b7a3e09: //" file="server/container_create.go:554" id=1a443cdb-1397-4070-bc74-bceebfab23d7 name=/runtime.v1alpha2.RuntimeService/CreateContainer
+Mar 08 23:04:50 k8s-node crio[1630123]: time="2021-03-08 23:04:50.671243453Z" level=debug msg="Response: &CreateContainerResponse{ContainerId:282f7f120aaadbb2ee1031b897962fcb45e8966ddfd2c2235643d5d09b7a3e09,}" file="go-grpc-middleware@v1.2.0/chain.go:25" id=1a443cdb-1397-4070-bc74-bceebfab23d7 name=/runtime.v1alpha2.
+RuntimeService/CreateContainer
+Mar 08 23:04:50 k8s-node crio[1630123]: time="2021-03-08 23:04:50.672329052Z" level=debug msg="Request: &StartContainerRequest{ContainerId:282f7f120aaadbb2ee1031b897962fcb45e8966ddfd2c2235643d5d09b7a3e09,}" file="go-grpc-middleware@v1.2.0/chain.go:25" id=878b06e7-dae9-45d8-90af-d88b0e124afc name=/runtime.v1alpha2.Run
+timeService/StartContainer
+
+Mar 08 23:04:50 k8s-node crio[1630123]: time="2021-03-08 23:04:50.672446097Z" level=info msg="Starting container: 282f7f120aaadbb2ee1031b897962fcb45e8966ddfd2c2235643d5d09b7a3e09" file="server/container_start.go:18" id=878b06e7-dae9-45d8-90af-d88b0e124afc name=/runtime.v1alpha2.RuntimeService/StartContainer
+Mar 08 23:04:50 k8s-node crio[1630123]: time="2021-03-08 23:04:50.698570347Z" level=info msg="Started container 282f7f120aaadbb2ee1031b897962fcb45e8966ddfd2c2235643d5d09b7a3e09: //" file="server/container_start.go:59" id=878b06e7-dae9-45d8-90af-d88b0e124afc name=/runtime.v1alpha2.RuntimeService/StartContainer
+Mar 08 23:04:50 k8s-node crio[1630123]: time="2021-03-08 23:04:50.726977949Z" level=debug msg="Response: &StartContainerResponse{}" file="go-grpc-middleware@v1.2.0/chain.go:25" id=878b06e7-dae9-45d8-90af-d88b0e124afc name=/runtime.v1alpha2.RuntimeService/StartContainer

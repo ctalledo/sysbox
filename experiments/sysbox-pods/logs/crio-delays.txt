@@ -1,0 +1,261 @@
+cmd/crio/wipe.go:	// first, check whether crio has shutdown with time to sync
+cmd/crio/main.go:	"time"
+cmd/crio/main.go:		strings.ReplaceAll(time.Now().Format(time.RFC3339), ":", ""),
+cmd/crio/main.go:			ReadTimeout: 5 * time.Second,
+completions/fish/crio.fish:complete -c crio -n '__fish_crio_no_subcommand' -l clean-shutdown-file -r -d 'Location for CRI-O to lay down the clean shutdown file. It indicates whether we\'ve had time to sync changes to disk before shutting down. If not found, crio wipe will clear the storage directory'
+completions/fish/crio.fish:complete -c crio -n '__fish_crio_no_subcommand' -f -l ctr-stop-timeout -r -d 'The minimal amount of time in seconds to wait before issuing a timeout regarding the proper termination of the container. The lowest possible value is 30s, whereas lower values are not considered by CRI-O'
+completions/fish/crio.fish:complete -c crio -n '__fish_crio_no_subcommand' -f -l stream-idle-timeout -r -d 'Length of time until open streams terminate due to lack of activity'
+contrib/metrics-exporter/dashboard.json:        "mode": "time",
+contrib/metrics-exporter/dashboard.json:        "mode": "time",
+contrib/metrics-exporter/dashboard.json:        "mode": "time",
+contrib/metrics-exporter/dashboard.json:  "time": {
+contrib/test/integration/results.yml:          checksum: True  # Don't rely on date/time being in sync
+contrib/test/integration/ansible.cfg:# if the *module* considers an argument to be no_log at the time that the
+contrib/test/integration/ansible.cfg:# The daemon timeout is measured in minutes. This time is measured
+contrib/test/integration/build/kubetest.yml:# kubetest with go module 1.11 on and without -u. As of the time of writing this,
+contrib/kube-local/kube-local.profile:    # Set cgroupv1 (only supported at this time)
+contrib/kube-local/kube-local:        print_msg "INFO_NEWLINE" "At this time, the tool could not detect which  channels must be added to: ${DISTRO_NAME} ${DISTRO_VERSION_ID}."
+docs/crio.8.md:**--clean-shutdown-file**="": Location for CRI-O to lay down the clean shutdown file. It indicates whether we've had time to sync changes to disk before shutting down. If not found, crio wipe will clear the storage directory (default: /var/lib/crio/clean.shutdown)
+docs/crio.8.md:**--ctr-stop-timeout**="": The minimal amount of time in seconds to wait before issuing a timeout regarding the proper termination of the container. The lowest possible value is 30s, whereas lower values are not considered by CRI-O (default: 30)
+docs/crio.8.md:**--stream-idle-timeout**="": Length of time until open streams terminate due to lack of activity
+docs/crio.conf.5.md:  It is used to check whether crio had time to sync before shutting down.
+docs/crio.conf.5.md:  Length of time until open streams terminate due to lack of activity.
+docs/crio.conf.5.md:  The minimal amount of time in seconds to wait before issuing a timeout regarding the proper termination of the container.
+go.sum:golang.org/x/time v0.0.0-20180412165947-fbb02b2291d2/go.mod h1:tRJNPiyCQ0inRvYxbN9jk5I+vvW/OXSQhTDSoE431IQ=
+go.sum:golang.org/x/time v0.0.0-20181108054448-85acf8d2951c/go.mod h1:tRJNPiyCQ0inRvYxbN9jk5I+vvW/OXSQhTDSoE431IQ=
+go.sum:golang.org/x/time v0.0.0-20190308202827-9d24e82272b4/go.mod h1:tRJNPiyCQ0inRvYxbN9jk5I+vvW/OXSQhTDSoE431IQ=
+go.sum:golang.org/x/time v0.0.0-20191024005414-555d28b269f0/go.mod h1:tRJNPiyCQ0inRvYxbN9jk5I+vvW/OXSQhTDSoE431IQ=
+go.sum:golang.org/x/time v0.0.0-20200416051211-89c76fbcd5d1/go.mod h1:tRJNPiyCQ0inRvYxbN9jk5I+vvW/OXSQhTDSoE431IQ=
+go.sum:golang.org/x/time v0.0.0-20200630173020-3af7569d3a1e h1:EHBhcS0mlXEAVwNyO2dLfjToGsyY4j24pTs2ScHnX7s=
+go.sum:golang.org/x/time v0.0.0-20200630173020-3af7569d3a1e/go.mod h1:tRJNPiyCQ0inRvYxbN9jk5I+vvW/OXSQhTDSoE431IQ=
+hack/lib/log/system.sh:# os::log::system::internal::plot uses gnuplot to make a plot of some data across time points. This function is intended to be used
+hack/lib/log/system.sh:        "set xdata time"
+install.md:The overall build process can take a tremendous amount of CPU time depending on
+install.md:If you are installing for the first time, generate and install configuration files with:
+internal/config/seccomp/seccomp.go:		logrus.Info("Seccomp is disabled by the system or at CRI-O build-time")
+internal/config/apparmor/apparmor.go:		logrus.Info("AppArmor is disabled by the system or at CRI-O build-time")
+internal/config/cgmgr/systemd.go:	// this function up to that library.  At that time, it would most likely do validation specific to systemd
+internal/version/version.go:// Variables injected during build-time
+internal/resourcestore/resourcestore_test.go:	"time"
+internal/resourcestore/resourcestore_test.go:			timeout := 2 * time.Second
+internal/resourcestore/resourcestore_test.go:				time.Sleep(timeout * 3)
+internal/resourcestore/resourcestore.go:	"time"
+internal/resourcestore/resourcestore.go:const sleepTimeBeforeCleanup = 1 * time.Minute
+internal/resourcestore/resourcestore.go:	timeout   time.Duration
+internal/resourcestore/resourcestore.go:func NewWithTimeout(timeout time.Duration) *ResourceStore {
+internal/resourcestore/resourcestore.go:		case <-time.After(rc.timeout):
+internal/oci/finished_unsupported.go:	"time"
+internal/oci/finished_unsupported.go:func getFinishedTime(fi os.FileInfo) (time.Time, error) {
+
+internal/oci/runtime_oci.go:	"time"
+internal/oci/runtime_oci.go:	case <-time.After(ContainerCreateTimeout):
+internal/oci/runtime_oci.go:	c.state.Started = time.Now()
+internal/oci/runtime_oci.go:func WaitContainerStop(ctx context.Context, c *Container, timeout time.Duration, ignoreKill bool) error {
+internal/oci/runtime_oci.go:				time.Sleep(100 * time.Millisecond)
+internal/oci/runtime_oci.go:	targetTime := time.Now().Add(timeout)
+internal/oci/runtime_oci.go:		case <-time.After(time.Until(targetTime)):
+internal/oci/runtime_oci.go:			newTargetTime := time.Now().Add(newTimeout)
+internal/oci/runtime_oci.go:	c.state.Finished = time.Now()
+internal/oci/runtime_oci.go:		c.state.Finished = time.Now()
+internal/oci/runtime_oci.go:		c.state.Finished = time.Now()
+internal/oci/runtime_oci.go:		err := WaitContainerStop(ctx, c, time.Duration(timeout)*time.Second, true)
+internal/oci/runtime_oci.go:		c.state.Finished = time.Now()
+internal/oci/runtime_oci.go:		return errors.Wrap(err, "failed to get finished time")
+internal/oci/runtime_oci.go:				c.state.Finished = time.Now()
+internal/oci/runtime_oci.go:			Duration: 500 * time.Millisecond,
+internal/oci/runtime_oci.go:			return fmt.Errorf("failed to get finished time: %v", err)
+internal/oci/runtime_oci.go:		const timeout = time.Second
+internal/oci/runtime_oci.go:		case <-time.After(timeout):
+internal/oci/runtime_oci.go:	c.state.Finished = time.Now()
+
+internal/oci/container.go:	"time"
+internal/oci/container.go:	stopTimeoutChan    chan time.Duration
+internal/oci/container.go:	Created   time.Time `json:"created"`
+internal/oci/container.go:	Started   time.Time `json:"started,omitempty"`
+internal/oci/container.go:	Finished  time.Time `json:"finished,omitempty"`
+internal/oci/container.go:	// The unix start time of the container's init PID.
+internal/oci/container.go:func NewContainer(id, name, bundlePath, logPath string, labels, crioAnnotations, annotations map[string]string, image, imageName, imageRef string, metadata *Metadata, sandbox string, terminal, stdin, stdinOnce bool, runtimeHandler, dir string, created time.Time, stopSignal string) (*Container, error) {
+internal/oci/container.go:		stopTimeoutChan: make(chan time.Duration, 1),
+internal/oci/container.go:func NewSpoofedContainer(id, name string, labels map[string]string, created time.Time, dir string) *Container {
+internal/oci/container.go:		return errors.Errorf("pid and start time already initialized: %d %s", cstate.InitPid, cstate.InitStartTime)
+internal/oci/container.go:// CreatedAt returns the container creation time
+internal/oci/container.go:func (c *Container) CreatedAt() time.Time {
+internal/oci/container.go:// verifyPid checks that the start time for the process on the node is the same
+internal/oci/container.go:// as the start time we saved after creating the container.
+internal/oci/container.go:			"PID %d is running but has start time of %s, whereas the saved start time is %s. PID wrap may have occurred",
+internal/oci/container.go:		case c.stopTimeoutChan <- time.Duration(timeout) * time.Second:
+
+internal/oci/oci_linux.go:	"time"
+internal/oci/oci_linux.go:	stats.SystemNano = time.Now().UnixNano()
+internal/oci/oci_linux.go:		SystemNano:  time.Now().UnixNano(),
+internal/oci/oci_unix.go:	"time"
+internal/oci/oci_unix.go:		systemTime = float64(uint64(time.Now().UnixNano()))
+internal/oci/history_test.go:	It("should succeed compare the creation time", func() {
+
+internal/oci/runtime_oci_test.go:	"time"
+internal/oci/runtime_oci_test.go:			It("should not update time if chronologically after if "+test.name, func() {
+internal/oci/runtime_oci_test.go:	case <-time.After(inSeconds(failAfterTimeout)):
+internal/oci/runtime_oci_test.go:	time.Sleep(inSeconds(shortTimeout))
+internal/oci/runtime_oci_test.go:func inSeconds(d int64) time.Duration {
+internal/oci/runtime_oci_test.go:	return time.Duration(d) * time.Second
+
+internal/oci/finished_32.go:	"time"
+internal/oci/finished_32.go:func getFinishedTime(fi os.FileInfo) (time.Time, error) {
+internal/oci/finished_32.go:		return time.Time{}, fmt.Errorf("type assertion failed")
+internal/oci/finished_32.go:	return time.Unix(int64(st.Ctim.Sec), int64(st.Ctim.Nsec)), nil
+internal/oci/oci.go:	"time"
+internal/oci/oci.go:	ContainerCreateTimeout = 240 * time.Second
+internal/oci/oci.go:	killContainerTimeout = 2 * time.Minute
+internal/oci/oci.go:				time.Sleep(100 * time.Millisecond)
+internal/oci/oci.go:	case <-time.After(time.Duration(r.config.CtrStopTimeout) * time.Second):
+internal/oci/finished.go:	"time"
+internal/oci/finished.go:func getFinishedTime(fi os.FileInfo) (time.Time, error) {
+internal/oci/finished.go:		return time.Time{}, fmt.Errorf("type assertion failed")
+internal/oci/finished.go:	return time.Unix(st.Ctim.Sec, st.Ctim.Nsec), nil
+
+
+internal/oci/runtime_vm.go:	"time"
+internal/oci/runtime_vm.go:	case <-time.After(ContainerCreateTimeout):
+internal/oci/runtime_vm.go:	c.state.Started = time.Now()
+internal/oci/runtime_vm.go:	timeoutDuration := time.Duration(timeout) * time.Second
+internal/oci/runtime_vm.go:	var timeoutCh <-chan time.Time
+internal/oci/runtime_vm.go:		timeoutCh = make(chan time.Time)
+internal/oci/runtime_vm.go:		timeoutCh = time.After(timeoutDuration)
+internal/oci/runtime_vm.go:		timeoutDuration := time.Duration(timeout) * time.Second
+internal/oci/runtime_vm.go:			c.state.Finished = time.Now()
+internal/oci/runtime_vm.go:	c.state.Finished = time.Now()
+internal/oci/runtime_vm.go:func (r *runtimeVM) waitCtrTerminate(sig syscall.Signal, stopCh chan error, timeout time.Duration) error {
+internal/oci/runtime_vm.go:	case <-time.After(timeout):
+
+
+internal/oci/suite_test.go:	"time"
+internal/oci/suite_test.go:		false, false, false, "", "dir", time.Now(), "")
+internal/oci/container_test.go:	"time"
+internal/oci/container_test.go:			To(BeNumerically("<", time.Now().UnixNano()))
+internal/oci/container_test.go:			false, false, false, "", "", time.Now(), "SIGNO")
+internal/oci/container_test.go:			false, false, false, "", "", time.Now(), "SIGTRAP")
+internal/oci/container_test.go:			// if InitStartTime != the time the state.InitPid started
+internal/oci/container_test.go:		It("should succeed to get start time", func() {
+internal/oci/container_test.go:		sut := oci.NewSpoofedContainer("id", "name", map[string]string{"key": "label"}, time.Now(), "dir")
+internal/oci/container_test.go:			To(BeNumerically("<", time.Now().UnixNano()))
+internal/hostport/fake_iptables.go:	"time"
+internal/hostport/fake_iptables.go:func (f *fakeIPTables) Monitor(canary utiliptables.Chain, tables []utiliptables.Table, reloadFunc func(), interval time.Duration, stopCh <-chan struct{}) {
+internal/criocli/criocli.go:// DefaultsPath is the path to default configuration files set at build time
+internal/criocli/criocli.go:			// Use the build-time-defined defaults path
+internal/criocli/criocli.go:			Usage:   "The minimal amount of time in seconds to wait before issuing a timeout regarding the proper termination of the container. The lowest possible value is 30s, whereas lower values are not considered by CRI-O",
+internal/criocli/criocli.go:			Usage:   "Length of time until open streams terminate due to lack of activity",
+internal/criocli/criocli.go:			Usage:     "Location for CRI-O to lay down the clean shutdown file. It indicates whether we've had time to sync changes to disk before shutting down. If not found, crio wipe will clear the storage directory",
+internal/runtimehandlerhooks/high_performance_hooks_test.go:	"time"
+internal/runtimehandlerhooks/high_performance_hooks_test.go:		false, "", "", time.Now(), "")
+internal/client/client.go:	"time"
+internal/client/client.go:		return net.DialTimeout(proto, addr, 32*time.Second)
+internal/storage/image.go:	"time"
+internal/storage/image.go:// avoid having to reread them every time we need to return information about
+internal/storage/image.go:	ProgressInterval time.Duration
+internal/storage/runtime.go:	"time"
+internal/storage/runtime.go:		CreatedAt:     time.Now().Unix(),
+internal/lib/container_server.go:	"time"
+internal/lib/container_server.go:	created, err := time.Parse(time.RFC3339Nano, m.Annotations[annotations.Created])
+internal/lib/container_server.go:	created, err := time.Parse(time.RFC3339Nano, m.Annotations[annotations.Created])
+internal/lib/logs_test.go:	"time"
+internal/lib/logs_test.go:					SinceTime: time.Date(2000, 0, 0, 0, 0, 0, 0, time.UTC),
+internal/lib/suite_test.go:	"time"
+internal/lib/suite_test.go:		[]*hostport.PortMapping{}, false, time.Now(), "")
+internal/lib/suite_test.go:		false, false, "", "", time.Now(), "")
+internal/lib/sandbox/namespaces_test.go:	"time"
+internal/lib/sandbox/namespaces_test.go:				"/root/for/container", time.Now(), "SIGKILL")
+internal/lib/sandbox/history_test.go:	"time"
+internal/lib/sandbox/history_test.go:			[]*hostport.PortMapping{}, false, time.Now(), "")
+internal/lib/sandbox/sandbox.go:	"time"
+internal/lib/sandbox/sandbox.go:	createdAt    time.Time
+internal/lib/sandbox/sandbox.go:func New(id, namespace, name, kubeName, logDir string, labels, annotations map[string]string, processLabel, mountLabel string, metadata *Metadata, shmPath, cgroupParent string, privileged bool, runtimeHandler, resolvPath, hostname string, portMappings []*hostport.PortMapping, hostNetwork bool, createdAt time.Time, usernsMode string) (*Sandbox, error) {
+internal/lib/sandbox/sandbox.go:func (s *Sandbox) CreatedAt() time.Time {
+internal/lib/sandbox/suite_test.go:	"time"
+internal/lib/sandbox/suite_test.go:		[]*hostport.PortMapping{}, false, time.Now(), "")
+internal/lib/sandbox/sandbox_test.go:	"time"
+internal/lib/sandbox/sandbox_test.go:			createdAt := time.Now()
+internal/lib/sandbox/sandbox_test.go:				"/root/for/container", time.Now(), "SIGKILL")
+internal/lib/container_server_test.go:	"time"
+internal/lib/container_server_test.go:				false, false, "", "/invalid", time.Now(), "")
+internal/lib/logs.go:	"time"
+internal/lib/logs.go:	SinceTime time.Time
+internal/lib/logs.go:func logSinceTime(sinceTime time.Time, logStr string) (bool, error) {
+internal/lib/logs.go:	logTime, err := time.Parse("2006-01-02T15:04:05.999999999-07:00", timestamp)
+Makefile:# pass crio CLI options to generate custom configuration options at build time
+pkg/config/config.go:	// that checks whether we've had time to sync before shutting down
+pkg/config/config.go:	// CtrStopTimeout specifies the time to wait before to generate an
+pkg/config/template.go:# It is used to check whether crio had time to sync before shutting down.
+pkg/config/template.go:# Length of time until open streams terminate due to lack of activity
+pkg/config/template.go:# The minimal amount of time in seconds to wait before issuing a timeout
+pkg/config/config_unix.go:	// that checks whether we've had time to sync before shutting down.
+pkg/container/container.go:	"time"
+pkg/container/container.go:	created := time.Now()
+pkg/container/container.go:	c.spec.AddAnnotation(annotations.Created, created.Format(time.RFC3339Nano))
+pkg/container/container_test.go:	"time"
+pkg/container/container_test.go:			currentTime := time.Now()
+scripts/release-notes/release_notes.go:	"time"
+scripts/release-notes/release_notes.go:		time.Now().Format(time.RFC1123),
+scripts/dependencies/dependencies.go:	"time"
+scripts/dependencies/dependencies.go:		time.Now().Format(time.RFC1123),
+server/container_start.go:		// adjust container started/finished time and set an error to be
+server/inspect_test.go:	"time"
+server/inspect_test.go:	created := time.Now()
+server/inspect_test.go:		t.Fatalf("expected same created time %d, got %d", created.UnixNano(), ci.CreatedTime)
+server/inspect_test.go:	created := time.Now()
+server/inspect_test.go:	created := time.Now()
+server/streaming/errors.go:		// or plumbing through the time to next expiration.
+server/streaming/streaming.go:	"time"
+server/streaming/streaming.go:	StreamIdleTimeout time.Duration
+server/streaming/streaming.go:	StreamCreationTimeout time.Duration
+server/streaming/streaming.go:	StreamIdleTimeout:               15 * time.Minute,
+server/streaming/streaming.go:func (a *criAdapter) ExecInContainer(podName string, podUID apiTypes.UID, container string, cmd []string, in io.Reader, out, err io.WriteCloser, tty bool, resize <-chan remotecommand.TerminalSize, timeout time.Duration) error {
+server/streaming/request_cache.go:	"time"
+server/streaming/request_cache.go:	cacheTTL = 1 * time.Minute
+server/streaming/request_cache.go:	// clock is used to obtain the current time
+server/streaming/request_cache.go:	expireTime time.Time
+server/container_create_linux.go:	"time"
+server/container_create_linux.go:	created := time.Now()
+server/sandbox_network.go:	"time"
+server/sandbox_network.go:	overallStart := time.Now()
+server/sandbox_network.go:	// This is to prevent the CNI plugin from taking an unbounded amount of time,
+server/sandbox_network.go:	const startTimeout = 5 * time.Minute
+server/sandbox_network.go:	podSetUpStart := time.Now()
+server/sandbox_network.go:	stopCtx, stopCancel := context.WithTimeout(ctx, 1*time.Minute)
+server/metrics/interceptors.go:	"time"
+server/metrics/interceptors.go:		operationStart := time.Now()
+server/metrics/metrics_test.go:	"time"
+server/metrics/metrics_test.go:				time.Now().Add(-time.Millisecond))
+server/metrics/metrics_test.go:		It("should be zero at time.Now()", func() {
+server/metrics/metrics_test.go:			res := metrics.SinceInMicroseconds(time.Now())
+server/metrics/metrics.go:	"time"
+server/metrics/metrics.go:// SinceInMicroseconds gets the time since the specified start in microseconds.
+server/metrics/metrics.go:func SinceInMicroseconds(start time.Time) float64 {
+server/metrics/metrics.go:	return float64(time.Since(start).Microseconds())
+server/utils.go:	"time"
+server/utils.go:	const resourceCreationWaitTime = time.Minute * 4
+server/utils.go:	case <-time.After(resourceCreationWaitTime):
+server/utils.go:	// However, we don't know how long we've been making the kubelet wait for the request, and the request could time outt
+server/suite_test.go:	"time"
+server/suite_test.go:		[]*hostport.PortMapping{}, false, time.Now(), "")
+server/suite_test.go:		false, "", "", time.Now(), "")
+server/server.go:	"time"
+server/server.go:	certRefreshInterval = time.Minute * 5
+server/server.go:	expires time.Time
+server/server.go:	if cc.config != nil && time.Now().Before(cc.expires) {
+server/server.go:	cc.expires = time.Now().Add(certRefreshInterval)
+server/server.go:		idleTimeout, err := time.ParseDuration(config.StreamIdleTimeout)
+server/image_fs_info.go:	"time"
+server/image_fs_info.go:		Timestamp:  time.Now().UnixNano(),
+server/sandbox_run_linux.go:	"time"
+server/sandbox_run_linux.go:	created := time.Now()
+server/sandbox_run_linux.go:	g.AddAnnotation(annotations.Created, created.Format(time.RFC3339Nano))
+server/image_pull.go:	"time"
+server/image_pull.go:			ProgressInterval: time.Second,
+test/testdata/config/config-v1.17.0.toml:# The minimal amount of time in seconds to wait before issuing a timeout
+Binary file test/testdata/image.tar matches
+test/test_runner.sh:execute time bats --jobs "$JOBS" --tap "$TESTS"
+transfer.md:guaranteed at this time. For example, it is not possible to interact with CRI-O
+tutorials/metrics.md:| `crio_operations_latency_microseconds_total` | every CRI-O RPC\*,<br><br>`network_setup_pod` (CNI pod network setup time),<br><br>`network_setup_overall` (Overall network setup time) | Summary | Latency in microseconds of CRI-O operations. Split-up by operation type. |
+utils/io/logger.go:	"time"
+utils/io/logger.go:	timestampFormat = time.RFC3339Nano
+utils/io/logger.go:		timestamp := time.Now().AppendFormat(nil, timestampFormat)

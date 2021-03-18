@@ -1,0 +1,97 @@
+# Sysbox Pod Mounts
+
+* Pod = nestybox/k8s-master:v1.18.2
+
+
+root@k8s-master:/# findmnt
+TARGET                                                       SOURCE                    FSTYPE   OPTIONS
+/                                                            overlay                   overlay  rw,nodev,relatime,lowerdir=/var/lib/containers/storage/overlay/l/5LBUU6AAND5O2EL5FCE3JWV7KK:/var/lib/containers/storage/overlay/l/5LBUU6AAND5O2EL5FCE3JWV7KK/../diff1:/var/lib/containers/storage/overlay/l/F32Z7CKPSIFXEEVNTS
+|-/var/lib/kubelet                                           overlay[/var/lib/kubelet] overlay  rw,nodev,relatime,lowerdir=/var/lib/containers/storage/overlay/l/5LBUU6AAND5O2EL5FCE3JWV7KK:/var/lib/containers/storage/overlay/l/5LBUU6AAND5O2EL5FCE3JWV7KK/../diff1:/var/lib/containers/storage/overlay/l/F32Z7CKPSIFXEEVNTS
+|-/sys                                                       sysfs                     sysfs    rw,nosuid,nodev,noexec,relatime
+| |-/sys/firmware                                            tmpfs                     tmpfs    ro,relatime,uid=362144,gid=362144
+| |-/sys/fs/cgroup                                           tmpfs                     tmpfs    ro,nosuid,nodev,noexec,mode=755,uid=362144,gid=362144
+| | |-/sys/fs/cgroup/systemd                                 systemd                   cgroup   rw,nosuid,nodev,noexec,relatime,xattr,name=systemd
+| | |-/sys/fs/cgroup/net_cls,net_prio                        cgroup                    cgroup   rw,nosuid,nodev,noexec,relatime,net_cls,net_prio
+| | |-/sys/fs/cgroup/rdma                                    cgroup                    cgroup   rw,nosuid,nodev,noexec,relatime,rdma
+| | |-/sys/fs/cgroup/perf_event                              cgroup                    cgroup   rw,nosuid,nodev,noexec,relatime,perf_event
+| | |-/sys/fs/cgroup/freezer                                 cgroup                    cgroup   rw,nosuid,nodev,noexec,relatime,freezer
+| | |-/sys/fs/cgroup/blkio                                   cgroup                    cgroup   rw,nosuid,nodev,noexec,relatime,blkio
+| | |-/sys/fs/cgroup/hugetlb                                 cgroup                    cgroup   rw,nosuid,nodev,noexec,relatime,hugetlb
+| | |-/sys/fs/cgroup/cpuset                                  cgroup                    cgroup   rw,nosuid,nodev,noexec,relatime,cpuset
+| | |-/sys/fs/cgroup/devices                                 cgroup                    cgroup   rw,nosuid,nodev,noexec,relatime,devices
+| | |-/sys/fs/cgroup/cpu,cpuacct                             cgroup                    cgroup   rw,nosuid,nodev,noexec,relatime,cpu,cpuacct
+| | |-/sys/fs/cgroup/memory                                  cgroup                    cgroup   rw,nosuid,nodev,noexec,relatime,memory
+| | `-/sys/fs/cgroup/pids                                    cgroup                    cgroup   rw,nosuid,nodev,noexec,relatime,pids
+| |-/sys/kernel/config                                       tmpfs                     tmpfs    rw,nosuid,nodev,noexec,relatime,size=1024k,uid=362144,gid=362144
+| |-/sys/kernel/debug                                        tmpfs                     tmpfs    rw,nosuid,nodev,noexec,relatime,size=1024k,uid=362144,gid=362144
+| |-/sys/kernel/tracing                                      tmpfs                     tmpfs    rw,nosuid,nodev,noexec,relatime,size=1024k,uid=362144,gid=362144
+| `-/sys/module/nf_conntrack/parameters/hashsize             sysboxfs[/sys/module/nf_conntrack/parameters/hashsize]
+|                                                                                      fuse     rw,nosuid,nodev,relatime,user_id=0,group_id=0,default_permissions,allow_other
+|-/proc                                                      proc                      proc     rw,nosuid,nodev,noexec,relatime
+| |-/proc/bus                                                proc[/bus]                proc     ro,relatime
+| |-/proc/fs                                                 proc[/fs]                 proc     ro,relatime
+| |-/proc/irq                                                proc[/irq]                proc     ro,relatime
+| |-/proc/sysrq-trigger                                      proc[/sysrq-trigger]      proc     ro,relatime
+| |-/proc/acpi                                               tmpfs                     tmpfs    ro,relatime,uid=362144,gid=362144
+| |-/proc/keys                                               udev[/null]               devtmpfs rw,nosuid,noexec,relatime,size=4032540k,nr_inodes=1008135,mode=755
+| |-/proc/timer_list                                         udev[/null]               devtmpfs rw,nosuid,noexec,relatime,size=4032540k,nr_inodes=1008135,mode=755
+| |-/proc/sched_debug                                        udev[/null]               devtmpfs rw,nosuid,noexec,relatime,size=4032540k,nr_inodes=1008135,mode=755
+| |-/proc/scsi                                               tmpfs                     tmpfs    ro,relatime,uid=362144,gid=362144
+| |-/proc/swaps                                              sysboxfs[/proc/swaps]     fuse     rw,nosuid,nodev,relatime,user_id=0,group_id=0,default_permissions,allow_other
+| |-/proc/sys                                                sysboxfs[/proc/sys]       fuse     rw,nosuid,nodev,relatime,user_id=0,group_id=0,default_permissions,allow_other
+| `-/proc/uptime                                             sysboxfs[/proc/uptime]    fuse     rw,nosuid,nodev,relatime,user_id=0,group_id=0,default_permissions,allow_other
+|-/dev                                                       tmpfs                     tmpfs    rw,nosuid,size=65536k,mode=755,uid=362144,gid=362144
+| |-/dev/mqueue                                              mqueue                    mqueue   rw,nosuid,nodev,noexec,relatime
+| |-/dev/pts                                                 devpts                    devpts   rw,nosuid,noexec,relatime,gid=362149,mode=620,ptmxmode=666
+| |-/dev/null                                                udev[/null]               devtmpfs rw,nosuid,noexec,relatime,size=4032540k,nr_inodes=1008135,mode=755
+| |-/dev/kmsg                                                udev[/null]               devtmpfs rw,nosuid,noexec,relatime,size=4032540k,nr_inodes=1008135,mode=755
+| |-/dev/shm                                                 shm                       tmpfs    rw,nosuid,nodev,noexec,relatime,size=65536k
+| |-/dev/termination-log                                     /dev/vda3[/var/lib/kubelet/pods/3b6964b7-4a6b-4e31-b573-59a7991d9ac7/containers/k8s-master/82d92f8d]
+| |                                                                                    ext4     rw,relatime,errors=remount-ro
+| |-/dev/random                                              udev[/random]             devtmpfs rw,nosuid,noexec,relatime,size=4032540k,nr_inodes=1008135,mode=755
+| |-/dev/full                                                udev[/full]               devtmpfs rw,nosuid,noexec,relatime,size=4032540k,nr_inodes=1008135,mode=755
+| |-/dev/tty                                                 udev[/tty]                devtmpfs rw,nosuid,noexec,relatime,size=4032540k,nr_inodes=1008135,mode=755
+| |-/dev/zero                                                udev[/zero]               devtmpfs rw,nosuid,noexec,relatime,size=4032540k,nr_inodes=1008135,mode=755
+| `-/dev/urandom                                             udev[/urandom]            devtmpfs rw,nosuid,noexec,relatime,size=4032540k,nr_inodes=1008135,mode=755
+|-/run                                                       tmpfs                     tmpfs    rw,nosuid,nodev,noexec,relatime,uid=362144,gid=362144
+| |-/run/lock                                                tmpfs                     tmpfs    rw,nosuid,nodev,noexec,relatime,uid=362144,gid=362144
+| |-/run/secrets/kubernetes.io/serviceaccount                tmpfs                     tmpfs    ro,relatime
+| `-/run/docker/netns/default                                nsfs[net:[4026532547]]    nsfs     rw
+|-/tmp                                                       tmpfs                     tmpfs    rw,nosuid,nodev,noexec,relatime,uid=362144,gid=362144
+|-/var/log/journal                                           tmpfs                     tmpfs    rw,nosuid,nodev,noexec,relatime,uid=362144,gid=362144
+|-/etc/resolv.conf                                           tmpfs[/containers/storage/overlay-containers/79a8dcfd7116dbd249cd2f5b551264be01c3aa71237301818ed2e841cbef0351/userdata/resolv.conf]
+|                                                                                      tmpfs    rw,nosuid,nodev,noexec,relatime,size=815280k,mode=755
+|-/etc/hostname                                              tmpfs[/containers/storage/overlay-containers/79a8dcfd7116dbd249cd2f5b551264be01c3aa71237301818ed2e841cbef0351/userdata/hostname]
+|                                                                                      tmpfs    rw,nosuid,nodev,noexec,relatime,size=815280k,mode=755
+|-/etc/hosts                                                 /dev/vda3[/var/lib/kubelet/pods/3b6964b7-4a6b-4e31-b573-59a7991d9ac7/etc-hosts]
+|                                                                                      ext4     rw,relatime,errors=remount-ro
+|-/var/lib/containerd/io.containerd.snapshotter.v1.overlayfs /dev/vda3[/var/lib/sysbox/containerd/fbfaa56365ce7cdc18dbab7dee08e51272d2a4ab91ba4c6af0898390b22e9654]
+|                                                                                      ext4     rw,relatime,errors=remount-ro
+|-/var/lib/docker                                            /dev/vda3[/var/lib/sysbox/docker/fbfaa56365ce7cdc18dbab7dee08e51272d2a4ab91ba4c6af0898390b22e9654]
+|                                                                                      ext4     rw,relatime,errors=remount-ro
+| |-/var/lib/docker/overlay2/bd0d16a99b1fe85d9bf2948383bad58b171b7707f608369c417e712a74f7f29e/merged
+| |                                                          overlay                   overlay  rw,relatime,lowerdir=/var/lib/docker/overlay2/l/AS3YIZX7YQQZKAYFNKR2OONEZO:/var/lib/docker/overlay2/l/R2XSOBC6FWKPUDJVZMOKRCMEMS,upperdir=/var/lib/docker/overlay2/bd0d16a99b1fe85d9bf2948383bad58b171b7707f608369c417e712a74f
+| |-/var/lib/docker/overlay2/7c2f7c8ee6bb2284bbd6096089260c5e974053303054acac2c19f1784433de4b/merged
+| |                                                          overlay                   overlay  rw,relatime,lowerdir=/var/lib/docker/overlay2/l/7QXGQAQKPQADFND5IVBRDY2CWJ:/var/lib/docker/overlay2/l/R2XSOBC6FWKPUDJVZMOKRCMEMS,upperdir=/var/lib/docker/overlay2/7c2f7c8ee6bb2284bbd6096089260c5e974053303054acac2c19f178443
+| |-/var/lib/docker/containers/1d34337e0531a718302c2285016bb1c13cae61f8992bea6cdc630435a56465d9/mounts/shm
+| |                                                          shm                       tmpfs    rw,nosuid,nodev,noexec,relatime,size=65536k,uid=362144,gid=362144
+| |-/var/lib/docker/overlay2/efb8cb727d1b00a8e6e7da1eb542f95b433203a52996649861e781d69dfe8d67/merged
+| |                                                          overlay                   overlay  rw,relatime,lowerdir=/var/lib/docker/overlay2/l/HJWD7GG7X6QM44S3QVK7V3DDH6:/var/lib/docker/overlay2/l/R2XSOBC6FWKPUDJVZMOKRCMEMS,upperdir=/var/lib/docker/overlay2/efb8cb727d1b00a8e6e7da1eb542f95b433203a52996649861e781d69df
+| |-/var/lib/docker/containers/355a4e8ea5a036b0bd4529e5ca3ccc9707c138fc52eaac0b8372742bc03881e7/mounts/shm
+| |                                                          shm                       tmpfs    rw,nosuid,nodev,noexec,relatime,size=65536k,uid=362144,gid=362144
+| |-/var/lib/docker/containers/dad3573c86d992ea11af3f6be2e5d23b52f3cf2c681f6eb7030bb6906742df6e/mounts/shm
+| |                                                          shm                       tmpfs    rw,nosuid,nodev,noexec,relatime,size=65536k,uid=362144,gid=362144
+| |-/var/lib/docker/overlay2/49ee48c33365f570ce84c430f7ec943e43c12113351d0522f9297067e59fca9d/merged
+| |                                                          overlay                   overlay  rw,relatime,lowerdir=/var/lib/docker/overlay2/l/JDKSX2KKUWKAT4K7FMWSOWRV5P:/var/lib/docker/overlay2/l/MX46MMCFHG6CMTZEA3T3AWWG2A:/var/lib/docker/overlay2/l/AKAZ44XO5AMELOS3FNNXRZ6F6M,upperdir=/var/lib/docker/overlay2/49ee4
+| |-/var/lib/docker/overlay2/ea311a67dd143489e0d29b059bf20113cd6f4d3c6d2813f9d92415251ce590d4/merged
+| |                                                          overlay                   overlay  rw,relatime,lowerdir=/var/lib/docker/overlay2/l/ZXFM46OWAWRIMPHUKPMEWFO3QN:/var/lib/docker/overlay2/l/KFIMTF7OJWAEFBI3EXLWTNCA53:/var/lib/docker/overlay2/l/E23GCB4RHVO4D3HFRNBJCLGSCH:/var/lib/docker/overlay2/l/QMBII3ID6LHX
+| |-/var/lib/docker/overlay2/5bf87aa185242abc8895300bd75b00f591f12a8158e2370b36bc42be124e2cef/merged
+| |                                                          overlay                   overlay  rw,relatime,lowerdir=/var/lib/docker/overlay2/l/KJ7J5OXYPDQKRB25HVHKMRPRUV:/var/lib/docker/overlay2/l/R2XSOBC6FWKPUDJVZMOKRCMEMS,upperdir=/var/lib/docker/overlay2/5bf87aa185242abc8895300bd75b00f591f12a8158e2370b36bc42be124
+| `-/var/lib/docker/containers/7b3e90ecb3f48b0670e3593e51c5646defeae98d9096187bfd8ab253825e9e73/mounts/shm
+|                                                            shm                       tmpfs    rw,nosuid,nodev,noexec,relatime,size=65536k,uid=362144,gid=362144
+|-/usr/src/linux-headers-5.4.0-42                            /dev/vda3[/usr/src/linux-headers-5.4.0-42]
+|                                                                                      ext4     ro,relatime,errors=remount-ro
+|-/usr/src/linux-headers-5.4.0-42-generic                    /dev/vda3[/usr/src/linux-headers-5.4.0-42-generic]
+|                                                                                      ext4     ro,relatime,errors=remount-ro
+`-/lib/modules/5.4.0-42-generic                              /dev/vda3[/usr/lib/modules/5.4.0-42-generic]
+                                                                                       ext4     ro,relatime,errors=remount-ro
