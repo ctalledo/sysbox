@@ -1,17 +1,21 @@
 {
     "metadata": {
-        "name": "alpine-sandbox2",
+        "name": "k8s-node-pod",
         "namespace": "default",
         "attempt": 1,
-        "uid": "sysbox-pod2"
+        "uid": "k8s-node-pod"
     },
     "annotations": {
         "io.kubernetes.cri-o.userns-mode": "auto:size=65536"
     },
-    "hostname": "alpine-sandbox2",
     "log_directory": "/tmp",
     "dns_config": {
     },
     "linux": {
+        "security_context": {
+            "namespace_options": {
+                "pid": 1
+            }
+        }
     }
 }

@@ -61,7 +61,7 @@ Steps:
 
   - sysbox-runc as one of the runtimes with userns "annotations" enabled.
 
-* To do this, the CRI-O config file (`/etc/CRI-O/CRI-O.conf`) must have this:
+* To do this, the CRI-O config file (`/etc/crio/crio.conf`) must have this:
 
 ```
 # Cgroup setting for conmon
@@ -72,7 +72,7 @@ conmon_cgroup = "pod"
 #cgroup_manager = "systemd"
 cgroup_manager = "cgroupfs"
 
-[CRI-O.runtime.runtimes.sysbox-runc]
+[crio.runtime.runtimes.sysbox-runc]
 runtime_path = "/usr/local/sbin/sysbox-runc"
 runtime_type = "oci"
 allowed_annotations = ["io.kubernetes.cri-o.userns-mode"]
@@ -81,7 +81,7 @@ allowed_annotations = ["io.kubernetes.cri-o.userns-mode"]
 * Then restart CRI-O:
 
 ```
-systemctl restart CRI-O
+systemctl restart crio
 ```
 
 #### Configure K8s to use CRI-O
@@ -97,20 +97,20 @@ sudo apt-get install -y kubelet=1.20.2-00 kubeadm=1.20.2-00 kubectl=1.20.2-00
 
 ```
 sudo swapoff -a
-sudo kubeadm init --cri-socket="/var/run/CRI-O/CRI-O.sock" --kubernetes-version=v1.20.2 --pod-network-cidr=10.244.0.0/16
+sudo kubeadm init --cri-socket="/var/run/crio/crio.sock" --kubernetes-version=v1.20.2 --pod-network-cidr=10.244.0.0/16
 sudo kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
 ```
 
 * For for a worker node:
 
 ```
-sudo kubeadm join --cri-socket="/var/run/CRI-O/CRI-O.sock ..."
+sudo kubeadm join --cri-socket="/var/run/crio/crio.sock ..."
 ```
 
 * To clear the node's config:
 
 ```
-sudo kubeadm reset --cri-socket="/var/run/CRI-O/CRI-O.sock"
+sudo kubeadm reset --cri-socket="/var/run/crio/crio.sock"
 ```
 
 * Kubelet config
@@ -126,7 +126,7 @@ sudo kubeadm reset --cri-socket="/var/run/CRI-O/CRI-O.sock"
 
   ```
   kubelet.service
-             │ └─1618514 /usr/bin/kubelet --bootstrap-kubeconfig=/etc/kubernetes/bootstrap-kubelet.conf --kubeconfig=/etc/kubernetes/kubelet.conf --config=/var/lib/kubelet/config.yaml --container-runtime=remote --container-runtime-endpoint=/var/run/CRI-O/CRI-O.sock
+             │ └─1618514 /usr/bin/kubelet --bootstrap-kubeconfig=/etc/kubernetes/bootstrap-kubelet.conf --kubeconfig=/etc/kubernetes/kubelet.conf --config=/var/lib/kubelet/config.yaml --container-runtime=remote --container-runtime-endpoint=/var/run/crio/crio.sock
   ```
 
 * Kubelet systemd service:
@@ -136,13 +136,13 @@ sudo kubeadm reset --cri-socket="/var/run/CRI-O/CRI-O.sock"
 systemd/system/kubelet.service.d/10-kubeadm.conf
 ```
 
-* When using CRI-O, the kubelet systemd service should have this config:
+* When using crio, the kubelet systemd service should have this config:
 
 ```
 # cat /etc/systemd/system/kubelet.service
-Environment="KUBELET_RUNTIME_ARGS=--container-runtime=remote --container-runtime-endpoint=/var/run/CRI-O/CRI-O.sock"
+Environment="KUBELET_RUNTIME_ARGS=--container-runtime=remote --container-runtime-endpoint=/var/run/crio/crio.sock"
 ExecStart=/usr/bin/kubelet $KUBELET_KUBECONFIG_ARGS $KUBELET_CONFIG_ARGS $KUBELET_RUNTIME_ARGS $KUBELET_KUBEADM_ARGS $KUBELET_EXTRA_ARGS
-Wants=CRI-O.service
+Wants=crio.service
 ```
 
 * More on kubelet config:
@@ -233,7 +233,7 @@ kubectl taint node k8s-node node-role.kubernetes.io/master:NoSchedule-
 ```
 allow_userns_annotation = true   <<< older CRI-O versions only; not needed in newer CRI-O versions.
 
-[CRI-O.runtime.runtimes.sysbox-runc]
+[crio.runtime.runtimes.sysbox-runc]
 runtime_path = "/usr/local/sbin/sysbox-runc"
 runtime_type = "oci"
 allowed_annotations = ["io.kubernetes.cri-o.userns-mode"]
@@ -506,7 +506,7 @@ $ mount -t sysfs sysfs sys
   - Make sure that sysbox-runc is added as a runtime in `/etc/CRI-O/CRI-O.conf`:
 
 ```toml
-[CRI-O.runtime.runtimes.sysbox-runc]
+[crio.runtime.runtimes.sysbox-runc]
 runtime_path = "/usr/local/sbin/sysbox-runc"
 runtime_type = "oci"
 allowed_annotations = ["io.kubernetes.cri-o.userns-mode"]
@@ -1177,6 +1177,10 @@ arting container process caused "process_linux.go:449: container init caused \"r
 
 ## TODO
 
+* Add crictl + CRI-O + sysbox tests to sysbox test suite    <<< HERE
+
+* Update other test container images to add crictl + CRI-O (same as done on ubuntu-focal image).
+
 * See if CRI-O top-of-tree works when /etc/subuid has `containers:0:296608:65536` and we use "runAsUser: 296608".
 
   - This way we always use the same UID for all containers.
@@ -1195,3 +1199,12 @@ arting container process caused "process_linux.go:449: container init caused \"r
 * TODO: in sysbox-runc we used the mount() command to overcome EPERM problems on
   mount syscalls. We should study this problem again and possibly improve it by
   pulling mount attributes using the statfs() syscall.
+
+* Re-work sysbox-fs: use combination of same userns + same netns to identify a pod.
+  Same userns by itself is not sufficient, as multiple pods may share the same
+  userns per the K8s KEPs 127.
+
+* Configure "storage.options.overlay" with "mountopt = "metacopy=on"". [DONE]
+  This will likely make faster the deployment of the sysbox pods.
+
+  - Confirmed; I updated the sysbox-internal issue #844 accordingly.

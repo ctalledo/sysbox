@@ -9,11 +9,8 @@
         "io.kubernetes.cri-o.userns-mode": "auto:size=65536"
     },
     "log_directory": "/tmp",
+    "dns_config": {
+    },
     "linux": {
-        "security_context": {
-            "run_as_user": {
-                "value": 296608
-            }
-        }
     }
 }
