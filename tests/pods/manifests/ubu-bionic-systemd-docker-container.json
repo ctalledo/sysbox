@@ -3,7 +3,7 @@
       "name": "ubu-bionic-systemd-docker"
   },
   "image":{
-      "image": "nestybox/ubuntu-bionic-systemd-docker"
+      "image": "ghcr.io/nestybox/ubuntu-bionic-systemd-docker"
   },
   "command": [
       "/sbin/init"

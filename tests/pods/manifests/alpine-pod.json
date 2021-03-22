@@ -3,7 +3,7 @@
         "name": "alpine-sandbox",
         "namespace": "default",
         "attempt": 1,
-        "uid": "sysbox-pod"
+        "uid": "alpine-pod"
     },
     "annotations": {
         "io.kubernetes.cri-o.userns-mode": "auto:size=65536"

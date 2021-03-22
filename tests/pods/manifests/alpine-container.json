@@ -1,14 +1,14 @@
 {
   "metadata": {
-      "name": "alpine-docker"
+      "name": "alpine"
   },
   "image":{
-      "image": "nestybox/alpine-docker"
+      "image": "alpine"
   },
   "command": [
       "tail", "-f", "/dev/null"
   ],
-  "log_path":"container.log",
+  "log_path":"alpine.log",
   "linux": {
   }
 }

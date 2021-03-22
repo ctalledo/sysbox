@@ -1,14 +1,13 @@
 {
     "metadata": {
-        "name": "alpine-sandbox2",
+        "name": "alpine-docker-sandbox",
         "namespace": "default",
         "attempt": 1,
-        "uid": "sysbox-pod2"
+        "uid": "alpine-docker-pod"
     },
     "annotations": {
         "io.kubernetes.cri-o.userns-mode": "auto:size=65536"
     },
-    "hostname": "alpine-sandbox2",
     "log_directory": "/tmp",
     "dns_config": {
     },
