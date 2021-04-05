@@ -98,7 +98,7 @@ sudo apt-get install -y kubelet=1.20.2-00 kubeadm=1.20.2-00 kubectl=1.20.2-00
 ```
 sudo swapoff -a
 sudo kubeadm init --cri-socket="/var/run/crio/crio.sock" --kubernetes-version=v1.20.2 --pod-network-cidr=10.244.0.0/16
-sudo kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
 ```
 
 * For for a worker node:
@@ -252,7 +252,7 @@ allowed_annotations = ["io.kubernetes.cri-o.userns-mode"]
 
 ```
 # cat /etc/crictl.yaml
-runtime-endpoint: unix:///var/run/CRI-O/CRI-O.sock
+runtime-endpoint: unix:///var/run/crio/crio.sock
 ```
 
 * Data store: `/var/lib/containers/`
@@ -1156,7 +1156,9 @@ arting container process caused "process_linux.go:449: container init caused \"r
     which causes it to not honor the `nodev` when setting up inner container
     attributes (as directed by k8s).
 
-  - There is: in `/etc/containers/storage.conf`, set `mountopt = ""` (default is `mountopt = "nodev"`)
+  - There is: globally in `/etc/containers/storage.conf`, set `mountopt = ""` (default is `mountopt = "nodev"`)
+
+  - Or for CRI-O only in: `/etc/crio/crio.conf`, set `crio.storage_driver=overlay` and `crio.storage_option=["overlay.mountopt=metacopy=on"]`.
 
   - This worked!
 
@@ -1177,22 +1179,18 @@ arting container process caused "process_linux.go:449: container init caused \"r
 
 ## TODO
 
-* Add crictl + CRI-O + sysbox tests to sysbox test suite    <<< HERE
+* Add crictl + CRI-O + sysbox tests to sysbox test suite  [DONE]
 
-* Update other test container images to add crictl + CRI-O (same as done on ubuntu-focal image).
+* Update other test container images to add crictl + CRI-O (same as done on ubuntu-focal image). [DONE]
 
-* See if CRI-O top-of-tree works when /etc/subuid has `containers:0:296608:65536` and we use "runAsUser: 296608".
-
-  - This way we always use the same UID for all containers.
-
-* See if there is a way for CRI-O to use user-ns but not chown the container's rootfs.
+* See if there is a way for CRI-O to use user-ns but not chown the container's rootfs. [DONE - none found]
 
   - This, together with a change in sysbox, may enable faster pod deployment by
     avoiding CRI-O having to chown the container image.
 
-* Ensure sysbox ITs and UTs pass with all sysbox-pod changes.
+* Ensure sysbox ITs and UTs pass with all sysbox-pod changes. [DONE]
 
-* Should this CRI-O setting be increased (in `/etc/CRI-O/CRI-O.conf`)?
+* Should this CRI-O setting be increased (in `/etc/crio/crio.conf`)?
 
   - "pids_limit = 1024"
 
@@ -1200,11 +1198,61 @@ arting container process caused "process_linux.go:449: container init caused \"r
   mount syscalls. We should study this problem again and possibly improve it by
   pulling mount attributes using the statfs() syscall.
 
-* Re-work sysbox-fs: use combination of same userns + same netns to identify a pod.
-  Same userns by itself is not sufficient, as multiple pods may share the same
-  userns per the K8s KEPs 127.
+* Re-work sysbox-fs: use combination of same netns to identify a pod. [DONE]
 
-* Configure "storage.options.overlay" with "mountopt = "metacopy=on"". [DONE]
-  This will likely make faster the deployment of the sysbox pods.
+* Fix problem with `docker run --runtime=sysbox-runc --net=container:<id>` [DONE]
 
-  - Confirmed; I updated the sysbox-internal issue #844 accordingly.
+* Work on fix for pod volume/mount permissions. [DONE]
+
+* Sysbox-fs: when sysbox-runc fails to create a container, it leaves a stale mount under `/var/lib/sysboxfs/<id>` [DONE]
+
+* Fix userns ID mappings coallescing in sysbox-runc. [DONE]
+
+* Rebase sysbox-pod branches based on latest changes in master branches.   <<< HERE
+
+* Submit sysbox-pod PRs.
+
+* Send sysbox pods early sample to Okteto.
+
+* Remove all unneeded usage of userns in sysbox-fs  <<< HERE
+
+* See if we can fix the inner user-ns restriction in sysbox.
+
+* Deal with lack of Docker app armor profile inside k8s-host.
+
+  - It won't be there if docker is not installed on the host.
+
+  - Can we allow the inner Docker to load it?
+
+* fix sysbox-runc sysctl validator code
+
+  `libcontainer/configs/validate/validator.go`
+
+* Come up with bind mount ownership soludion for distros without shiftfs / id-mapped mounts
+
+  - auto-chown
+
+  - with auto detection for sharing (containers sharing same storage are assigned same uid mappings)
+
+  - sysbox-ee feature
+
+* Add more sysbox pod tests
+
+* Write up docs on how to use sysbox pods
+
+* Write up sysbox install daemon-set
+
+* Cleanup github issues
+
+* Debug this sysbox-fs error (saw it during the sysbox perf tests):
+
+```
+# time="2021-04-04 19:08:25" level=error msg="FUSE file-system could not be unmounted: waitid: no child processes"
+# time="2021-04-04 19:08:25" level=error msg="FuseServer to destroy could not be eliminated for container id 0e23da6a824f5ab30bc18c70a5d6f7180ca6d32395ad5154ec0f6036cc19c55e"
+```
+
+* Fix problem with sysbox-mgr failing to init `/var/lib/sysbox` correctly sometimes.
+
+* See if CRI-O top-of-tree works when /etc/subuid has `containers:0:296608:65536` and we use "runAsUser: 296608".
+
+  - This way we always use the same UID for all containers.
