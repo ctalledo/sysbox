@@ -1211,9 +1211,20 @@ arting container process caused "process_linux.go:449: container init caused \"r
 
 * Rebase sysbox-pod branches based on latest changes in master branches.  [DONE]
 
+* Stabilize sysbox-pods in dev machine   <<< HERE
+
+* Verify it works well in k8s host too
+
 * Submit sysbox-pod PRs. [IN-PROG]
 
   - sysbox-fs [IN-PROG]
+
+
+* Create package for GKE (ubu-bionic)
+
+* Try installing sysbox on a GCP k8s node
+
+* Send sysbox pods early sample to Okteto.
 
 * Debug this sysbox-fs error (saw it during the sysbox perf tests and kind tests, consistently every few iterations):
 
@@ -1221,10 +1232,6 @@ arting container process caused "process_linux.go:449: container init caused \"r
 # time="2021-04-04 19:08:25" level=error msg="FUSE file-system could not be unmounted: waitid: no child processes"
 # time="2021-04-04 19:08:25" level=error msg="FuseServer to destroy could not be eliminated for container id 0e23da6a824f5ab30bc18c70a5d6f7180ca6d32395ad5154ec0f6036cc19c55e"
 ```
-
-* Try installing sysbox on a GCP k8s node
-
-* Send sysbox pods early sample to Okteto.
 
 * Remove all unneeded usage of userns in sysbox-fs
 
