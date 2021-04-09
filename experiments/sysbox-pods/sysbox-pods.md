@@ -37,13 +37,14 @@ NOTE:
 
 Steps:
 
-1) Install and configure CRI-O on the K8s node.
+1) Install and configure CRI-O on the K8s node (see instructions here: https://cri-o.io/)
 
 2) Configure K8s to use CRI-O
 
 3) Configure K8s to learn about Sysbox
 
 4) Configure K8s pod to use Sysbox
+
 
 #### Install & Configure CRI-O
 
@@ -1208,15 +1209,30 @@ arting container process caused "process_linux.go:449: container init caused \"r
 
 * Fix userns ID mappings coallescing in sysbox-runc. [DONE]
 
-* Rebase sysbox-pod branches based on latest changes in master branches.   <<< HERE
+* Rebase sysbox-pod branches based on latest changes in master branches.  [DONE]
 
-* Submit sysbox-pod PRs.
+* Submit sysbox-pod PRs. [IN-PROG]
+
+  - sysbox-fs [IN-PROG]
+
+* Debug this sysbox-fs error (saw it during the sysbox perf tests and kind tests, consistently every few iterations):
+
+```
+# time="2021-04-04 19:08:25" level=error msg="FUSE file-system could not be unmounted: waitid: no child processes"
+# time="2021-04-04 19:08:25" level=error msg="FuseServer to destroy could not be eliminated for container id 0e23da6a824f5ab30bc18c70a5d6f7180ca6d32395ad5154ec0f6036cc19c55e"
+```
+
+* Try installing sysbox on a GCP k8s node
 
 * Send sysbox pods early sample to Okteto.
 
-* Remove all unneeded usage of userns in sysbox-fs  <<< HERE
+* Remove all unneeded usage of userns in sysbox-fs
 
 * See if we can fix the inner user-ns restriction in sysbox.
+
+* Add apparmor profile for sysbox containers.
+
+  - Use it by default, unless a profile is explicitly set by higher level container manager.
 
 * Deal with lack of Docker app armor profile inside k8s-host.
 
@@ -1244,15 +1260,10 @@ arting container process caused "process_linux.go:449: container init caused \"r
 
 * Cleanup github issues
 
-* Debug this sysbox-fs error (saw it during the sysbox perf tests):
-
-```
-# time="2021-04-04 19:08:25" level=error msg="FUSE file-system could not be unmounted: waitid: no child processes"
-# time="2021-04-04 19:08:25" level=error msg="FuseServer to destroy could not be eliminated for container id 0e23da6a824f5ab30bc18c70a5d6f7180ca6d32395ad5154ec0f6036cc19c55e"
-```
-
 * Fix problem with sysbox-mgr failing to init `/var/lib/sysbox` correctly sometimes.
 
 * See if CRI-O top-of-tree works when /etc/subuid has `containers:0:296608:65536` and we use "runAsUser: 296608".
 
   - This way we always use the same UID for all containers.
+
+* Modify sysbox installer to not require Docker; update docs accordingly.
