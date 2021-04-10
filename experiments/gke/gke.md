@@ -1,20 +1,12 @@
-# Notes on Google Compute Platform (GCP)
+# Notes on GKE + Sysbox
 
-## GKE
+## Cluster Provisioning
 
-### Provisioning
+* It's pretty easy to privision a GKE cluster via the web-based interface.
 
-* It took ~3 minutes to provision the 3-node basic cluster (I used the web client).
+* It took ~3 minutes to provision the 3-node basic cluster.
 
-* I connected to it using the GCP browser built-in cloud shell:
-
-```
-gcloud container clusters get-credentials my-first-cluster-1 --zone us-central1-c --project predictive-fx-309900
-```
-
-### Kubernetes
-
-* K8s is 1.19 by default.
+* The GKE cluster has K8s 1.19 by default (as of 04/2021).
 
 ```
 ctalledo@cloudshell:~ (predictive-fx-309900)$ kubectl version
@@ -22,20 +14,28 @@ Client Version: version.Info{Major:"1", Minor:"20", GitVersion:"v1.20.5", GitCom
 Server Version: version.Info{Major:"1", Minor:"19+", GitVersion:"v1.19.8-gke.1600", GitCommit:"4f6f69fd81ca8cb6962a2f7e1ed9c7880834cf71", GitTreeState:"clean", BuildDate:"2021-03-08T19:22:13Z", GoVersion:"go1.15.8b5", Compiler:"gc", Platform:"linux/amd64"}
 ```
 
-* There is a "rapid channel" option that carries K8s 1.20.4.
+* However, there is a "rapid channel" option that carries K8s 1.20.4.
 
 * The cluster can be upgraded, both the control plane and worker nodes.
 
-  - Control plane took 2-3 minutes.
+  - Upgrade of the control plane took 2-3 minutes.
 
-  - Worker nodes took 6 minutes (2 minutes per node).
+  - Upgrade of the worker nodes took 6 minutes (2 minutes per node).
 
 
-### Remote access
+## Cluster Access
 
-* I installed the `gcloud` tool, as described here: https://cloud.google.com/sdk/docs/install
+* Can be done via:
 
-* I can then access the GKE cluster via a command such as:
+  - Web-based interface
+
+  - Web-based shell
+
+  - Remote kubectl
+
+* For remote access, I installed the `gcloud` tool, as described here: https://cloud.google.com/sdk/docs/install
+
+* Once installed, access the GKE cluster via:
 
 ```
 cesar@focal:~/nestybox/sysbox-internal-dev-pods/experiments/gke$ gcloud container clusters get-credentials my-first-cluster-1 --zone us-central1-c --project predictive-fx-309900
@@ -63,19 +63,21 @@ pool-1        e2-medium     32            1.20.4-gke.2200
 ```
 
 
-### Nodes
+## K8s Cluster Nodes
 
-* Nodes are allocated from node pools.
+* Nodes are allocated from "node pools".
 
 * Each node pool contains 1 or more nodes of the same type.
 
-#### Node Types
+### Node Types
 
 * GKE nodes come in several flavors:
 
   - Container Optimized OS (with Docker or containerd)
 
-  - Ubuntu (with Docker or containerd)
+  - Ubuntu with Docker
+
+  - Ubuntu with containerd
 
   - Windows
 
@@ -89,7 +91,7 @@ gke-my-first-cluster-1-default-pool-381d0f5c-gnl7   Ready    <none>   13m   v1.1
 gke-my-first-cluster-1-default-pool-381d0f5c-h25j   Ready    <none>   13m   v1.19.8-gke.1600   10.128.0.3    34.123.196.187   Container-Optimized OS from Google   5.4.89+          docker://19.3.14
 ```
 
-* These carry a GKE specific distro with a 5.4 kernel, so Sysbox won't work well in them (did not try it though):
+* These carry a GKE specific distro with a 5.4 kernel, so it's likely Sysbox won't work well in them (Sysbox needs ubuntu 5.0+ or 5.5+ otherwise):
 
 ```
   nodeInfo:
@@ -105,7 +107,7 @@ gke-my-first-cluster-1-default-pool-381d0f5c-h25j   Ready    <none>   13m   v1.1
     systemUUID: d0b199c1-02e0-dac9-57d2-94f47cd52705
 ```
 
-* Instead, I tried the ubuntu-based nodes:
+* Luckily, the "ubuntu with containerd" node carries ubuntu bionic with a 5.4 kernel, so it does work.
 
 ```
 Machine ID: 7df14aa9d7b9e9cb1ab7fa386ba9659d
@@ -117,14 +119,19 @@ Container runtime version: containerd://1.4.1
 kubelet version: v1.20.4-gke.2200
 kube-proxy version: v1.20.4-gke.2200
 ```
-* These carry Ubuntu Bionic 18.04 with a 5.4 kernel, so they should be fine.
 
-#### Node access
+* These carry Ubuntu Bionic 18.04 with a 5.4 kernel, so they work fine with Sysbox.
+
+### Node access
 
 * By default, each node has an internal and external IP address.
 
 * To ssh into it, I added my dev machine's public ssh key to the
   node's `.ssh/authorized-keys` file.
+
+  - NOTE: I noticed this file is periodically removed from the node by GKE.
+
+  - TODO: figure out how to make this access permanent.
 
 * I then ssh'd into it using the external IP address.
 
@@ -144,13 +151,16 @@ $ passwd
 Enter a new UNIX password: ...
 ```
 
-#### Installing Sysbox on a Node
 
-* I chose the "ubuntu + docker" gke image, and proceeded to install sysbox in it.
+## Manually Config of a GKE node with Sysbox
+
+### 1st Attempt: Failed
+
+* I initially chose the "ubuntu + docker" node image, and proceeded to install sysbox in it.
 
 * Problem #1: jq not installed in host; fixed with `apt-get update && apt-get install jq`
 
-* Problem #2: Docker is running containers/pods on the node, so sysbox installer failed:
+* Problem #2: Docker is running containers/pods on the node, so the sysbox installer failed:
 
 ```
 Sysbox installer found existing docker containers. Please remove them as indicated below. Refer to Sysbox installation documentation for details.
@@ -209,71 +219,214 @@ cesar@focal:~/nestybox/sysbox-internal-dev-pods/experiments/gke$ gcloud containe
 ERROR: (gcloud.container.node-pools.update) ResponseError: code=400, message=Auto_repair cannot be false when release_channel RAPID is set.
 ```
 
-Next steps:
+### 2nd Attempt: Success
 
-* Create a node with k8s + containerd only (no docker) [DONE]
+* Create a node with k8s + containerd only (no docker)
 
-* Install docker manually (optional)
+  - The node comes with crictl installed.
 
-* Install crio manually [DONE - see https://cri-o.io/]
+* Installed CRI-O manually (see https://cri-o.io/)
 
-* Install sysbox manually
+* Installed Sysbox manually via the package installer.
 
-* Verify docker + sysbox works (to verify kernel is good) (optional)
+  - This required some fixes in the package installer to decouple of it from the presence of Docker.
 
-* Verify crictl + crio + sysbox works (to verify kernel is good)
+* Verified crictl + CRI-O + Sysbox works (optional step I did to check all is well):
 
-* Configure kubelet to use crio
+  - Had to configure crictl to use CRI-O instead of containerd (`/etc/crictl.yaml`)
 
-* K8s + crio + sysbox works
+  - Had to configure CRI-O:
 
+      - Add Sysbox runtime
 
-#### Node Configuration
+      - Use cgroupfs driver
 
-* GKE->clusters->node->node-pools->instance groups
+      - Use overlayfs storage driver (without `nodev` option and with `metacopy=on` option)
 
-  - This takes you to GCE window where there is an option to SSH into the node.
+  - Had to manually install a CNI for CRIO (as done in Sysbox's test-container dockerfile) and restart CRI-O.
 
-* WARNING regarding node configs (per https://cloud.google.com/kubernetes-engine/docs/concepts/node-images):
+    - This required installing Golang on the node, as the CNI was built from scratch.
 
-"Modifications on the boot disk of a node VM do not persist across node
-re-creations. Nodes are re-created during manual upgrade, auto-upgrade,
-auto-repair, and auto-scaling. In addition, nodes are re-created when you enable
-a feature that requires node re-creation, such as GKE sandbox, intranode
-visibility, and shielded nodes."
+  - This worked, which means Sysbox-pods fundamentally work on the GKE node (great!).
 
-"To preserve modifications across node re-creation, use a DaemonSet."
+* Configured the Kubelet to use CRI-O:
 
+  - Modified the kubelet's runtime from containerd -> CRI-O via the `/etc/default/kubelet file` (see [kubelet config](#kubelet-config))
 
-* I upgraded the node manually:
+  - Restarted the kubelet service via systemd.
 
-  - Note: upgrading the via the LTS package did not work as intented (the kernel stayed at 5.4):
+* This worked well:
 
-  `sudo apt-get update && sudo apt install --install-recommends linux-generic-hwe-18.04 -y`
+  - The GKE node remained up
 
-  - Thus, I did a distro upgrade as follows:
+  - GKE relaunched all the control-plane pods with CRI-O once it detected the kubelet restart.
 
-  ```
-  sudo apt-get update
-  sudo apt-get upgrade -y
-  sudo do-release-upgrade
-  ```
+* NOTE: This needs to be done with a daemon-set, as the manual config is not persistent:
 
-  - The last command asked way to many confirmation questions
+  - Per https://cloud.google.com/kubernetes-engine/docs/concepts/node-images):
 
-    - TODO: pass a flag that avoid this.
+  "Modifications on the boot disk of a node VM do not persist across node
+  re-creations. Nodes are re-created during manual upgrade, auto-upgrade,
+  auto-repair, and auto-scaling. In addition, nodes are re-created when you
+  enable a feature that requires node re-creation, such as GKE sandbox,
+  intranode visibility, and shielded nodes.
 
-  - In the end it DID NOT work as expected, we got a ubuntu-focal but with a 5.4 kernel still:
+  To preserve modifications across node re-creation, use a DaemonSet."
+
+### Deploying Pods with Sysbox
+
+* Add the Sysbox runtime class to K8s.
+
+* Add a label to the K8s node(s) with Sysbox; this way we can direct K8s to deploy the desired pods on those nodes.
 
 ```
-ctalledo@gke-my-first-cluster-1-pool-1-ef917cbb-5nsl:~$ uname -a
-Linux gke-my-first-cluster-1-pool-1-ef917cbb-5nsl 5.4.0-1039-gke #41-Ubuntu SMP Fri Mar 19 17:59:28 UTC 2021 x86_64 x86_64 x86_64 GNU/Linux
-ctalledo@gke-my-first-cluster-1-pool-1-ef917cbb-5nsl:~$ lsb_release -a
-No LSB modules are available.
-Distributor ID: Ubuntu
-Description:    Ubuntu 20.04.2 LTS
-Release:        20.04
-Codename:       focal
+kubectl label nodes <node-name> runtime=sysbox
+```
+
+  See: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/
+
+* Then update the desired pod specs to add the nodeSelector.
+
+```
+spec:
+ runtimeClassName: sysbox-runc
+  containers:
+  - name: alpine-docker
+    image: ghcr.io/nestybox/alpine-docker
+    command: ["tail"]
+    args: ["-f", "/dev/null"]
+  restartPolicy: Never
+ nodeSelector:
+    runtime: sysbox
+```
+
+* Then simply `kubectl apply` the pod spec and voila, sysbox (rootless) pods on GKE!
+
+```
+kubectl apply -f alpine-docker-pod.yaml
+```
+
+* I tested the following pods:
+
+  - rootless pods with systemd, docker, and even k8s work!
+
+
+## Kubelet Config Details
+
+* Done via a systemd service file for kubelet:
+
+```
+            ├─kubelet.service
+             │ └─2905 /home/kubernetes/bin/kubelet --v=2 --cloud-provider=gce --experimental-check-node-capabilities-before-mount=true --experimental-mounter-path=/home/kubernetes/containerized_mounter/mounter --cert-dir=/var/lib/kubelet/pki/ --cni-bin-dir=/home/kubernetes/bin --kubeconfig=/var/lib/kubelet/kubeconfig
+             --image-pull-progress-deadline=5m --max-pods=110 --non-masquerade-cidr=0.0.0.0/0 --network-plugin=kubenet
+             --volume-plugin-dir=/home/kubernetes/flexvolume --node-status-max-images=25
+
+             --container-runtime=remote --container-runtime-endpoint=unix:///run/containerd/containerd.sock   <<< NOTE
+
+             --runtime-cgroups=/system.slice/containerd.service --registry-qps=10 --registry-burst=20 --config /home/kubernetes/kubelet-config.yaml --pod-sysctls=net.core.somaxconn=1024, ...
+```
+
+* Note: the k8s systemd unit files are here: `/etc/systemd/system`
+
+  - E.g., `/etc/systemd/system/kubelet.service`
+
+
+* The kubelet service uses the `$KUBELET_OPS` env var to get it's config.
+
+* The `KUBELET_OPTS` env var comes from `/etc/default/kubelet`:
+
+```
+$ cat /etc/default/kubelet
+
+KUBELET_OPTS="--v=2 --cloud-provider=gce --experimental-check-node-capabilities-before-mount=true --experimental-mounter-path=/home/kubernetes/containerized_mounter/mounter
+--cert-dir=/var/lib/kubelet/pki/ --cni-bin-dir=/home/kubernetes/bin --kubeconfig=/var/lib/kubelet/kubeconfig --image-pull-progress-deadline=5m --max-pods=110
+--non-masquerade-cidr=0.0.0.0/0 --network-plugin=kubenet --volume-plugin-dir=/home/kubernetes/flexvolume --node-status-max-images=25
+--container-runtime=remote --container-runtime-endpoint=unix:///run/containerd/containerd.sock --runtime-cgroups=/system.slice/containerd.service
+--registry-qps=10 --registry-burst=20 --config /home/kubernetes/kubelet-config.yaml --pod-sysctls='net.core.somaxconn=1024,net.ipv4.conf.all.accept_redirects=0,net.ipv4.conf.all.forwarding=1,net.ipv4.conf.all.route_localnet=1,net.ipv4.conf.default.forwarding=1,net.ipv4.ip_forward=1,net.ipv4.tcp_fin_timeout=60,net.ipv4.tcp_keepalive_intvl=60,net.ipv4.tcp_keepalive_probes=5,net.ipv4.tcp_keepalive_time=300,net.ipv4.tcp_rmem=4096 87380 6291456,net.ipv4.tcp_syn_retries=6,net.ipv4.tcp_tw_reuse=0,net.ipv4.tcp_wmem=4096 16384 4194304,net.ipv4.udp_rmem_min=4096,net.ipv4.udp_wmem_min=4096,net.ipv6.conf.default.accept_ra=0,net.netfilter.nf_conntrack_generic_timeout=600,net.netfilter.nf_conntrack_tcp_be_liberal=1,net.netfilter.nf_conntrack_tcp_timeout_close_wait=3600,net.netfilter.nf_conntrack_tcp_timeout_established=86400'"
+
+KUBE_COVERAGE_FILE="/var/log/kubelet.cov"
+```
+
+* I changed it to CRI-O with this `sed`:
+
+```
+sudo sed -i 's@--container-runtime-endpoint=unix:///run/containerd/containerd.sock@--container-runtime-endpoint=unix:///run/crio/crio.sock@g' /etc/default/kubelet
+sudo sed -i 's@--runtime-cgroups=/system.slice/containerd.service@--runtime-cgroups=/system.slice/crio.service@g' /etc/default/kubelet
+```
+
+* Then restarted kubelet: `sudo systemctl restart kubelet`
+
+* After restart, `journalctl -xeu kubelet` shows some errors:
+
+```
+Apr 09 22:04:15 gke-my-first-cluster-1-pool-1-fdd5037a-4jp3 kubelet[700121]: E0409 22:04:15.646242  700121 cri_stats_provider.go:376] Failed to get the info of the filesystem with mountpoint "/var/lib/containers/storage/overlay-images": unable to find data in memory cache.
+Apr 09 22:04:15 gke-my-first-cluster-1-pool-1-fdd5037a-4jp3 kubelet[700121]: E0409 22:04:15.646556  700121 kubelet.go:1298] Image garbage collection failed once. Stats initialization may not have completed yet: invalid capacity 0 on image filesystem
+...
+Apr 09 22:04:15 gke-my-first-cluster-1-pool-1-fdd5037a-4jp3 kubelet[700121]: E0409 22:04:15.807149  700121 kubelet.go:1859] skipping pod synchronization - [container runtime status check may not have completed yet, PLEG is not healthy: pleg has yet to be successful]
+Apr 09 22:04:15 gke-my-first-cluster-1-pool-1-fdd5037a-4jp3 kubelet[700121]: E0409 22:04:15.907380  700121 kubelet.go:1859] skipping pod synchronization - container runtime status check may not have completed yet
+...
+Apr 09 22:04:16 gke-my-first-cluster-1-pool-1-fdd5037a-4jp3 kubelet[700121]: E0409 22:04:16.140583  700121 kubelet.go:1668] Failed creating a mirror pod for "kube-proxy-gke-my-first-cluster-1-pool-1-fdd5037a-4jp3_kube-system(e1c28e4de3e00ff2b69cf4cae0c60786)": pods "kube-proxy-gke-my-first-cluster-1-pool-1-fdd5037a-4
+```
+
+* But things look good:
+
+```
+ctalledo@gke-my-first-cluster-1-pool-1-fdd5037a-4jp3:/etc/default$ sudo crictl ps
+CONTAINER           IMAGE                                                                                                                       CREATED             STATE               NAME                   ATTEMPT             POD ID
+01c2340a67b76       gke.gcr.io/gcp-compute-persistent-disk-csi-driver@sha256:e9e3a3af496e330d473b7c5c42958de4ebc1c17fbbb311360b7ecdf7b28e1c93   7 minutes ago       Running             gce-pd-driver          0                   59b474116c2ae
+059b6746a08bd       gke.gcr.io/kube-proxy-amd64@sha256:9780756c79898c2d28b9fe1bda004e33a525969a1abc78da88ed4311d01f38ed                         7 minutes ago       Running             kube-proxy             0                   51681316eea5b
+31bf8a5121b14       gke.gcr.io/proxy-agent-amd64@sha256:ce92d6924c818a0d53273f941d603aa550718364233bdf7b12d2736352b3fde9                        7 minutes ago       Running             konnectivity-agent     0                   984e5033d247f
+323ac372b2bd9       gke.gcr.io/csi-node-driver-registrar@sha256:877ecfbb4119d63e83a45659044d128326f814ae1091b5630e236930a50b741d                7 minutes ago       Running             csi-driver-registrar   0                   59b474116c2ae
+```
+
+* Kubectl confirms the node is healthy:
+
+```
+ctalledo@cloudshell:~ (predictive-fx-309900)$ kubectl get nodes
+NAME                                                STATUS   ROLES    AGE     VERSION
+gke-my-first-cluster-1-default-pool-381d0f5c-6184   Ready    <none>   3d18h   v1.20.4-gke.2200
+gke-my-first-cluster-1-default-pool-381d0f5c-823q   Ready    <none>   3d18h   v1.20.4-gke.2200
+gke-my-first-cluster-1-default-pool-381d0f5c-fmz7   Ready    <none>   3d18h   v1.20.4-gke.2200
+gke-my-first-cluster-1-pool-1-fdd5037a-4jp3         Ready    <none>   2d16h   v1.20.4-gke.2200
+```
+
+### Dynamic kubelet config
+
+* k8s formally supports reconfiguring the kubelet dynamically:
+
+  https://kubernetes.io/docs/tasks/administer-cluster/reconfigure-kubelet/
+
+*  The following kubelet configuration parameters can be changed dynamically:
+
+   https://kubernetes.io/docs/reference/config-api/kubelet-config.v1beta1/
+
+   NOTE: I don't see the `--container-runtime-endpoint` in there :(
+
+* For each node that you're reconfiguring, you must set the kubelet --dynamic-config-dir flag to a writable directory.
+
+* The new configuration completely overrides configuration provided by --config, and is overridden by command-line flags.  <<< THE LATTER MAY BE A PROBLEM FOR CONFIGURING KUBELET WITH CRI-O, BECAUSE THE CMD LINE IS POINTING KUBELET TO CONTAINERD
+
+
+## Node Health Monitoring
+
+* Check status from kubectl:
+
+```
+kubectl get node <node> -o json | jq ".status"
+```
+
+* Each k8s node has a kubelet-monitor service:
+
+```
+             ├─kube-container-runtime-monitor.service
+             │ ├─  3009 bash /home/kubernetes/bin/health-monitor.sh container-runtime
+```
+
+* There is also a comprehensive "node problem detector":
+
+```
+     ├─node-problem-detector.service
+             │ └─2939 /home/kubernetes/bin/node-problem-detector --v=2 --logtostderr --config.system-log-monitor=/home/kubernetes/node-problem-detector/config/kernel-monitor.json,/home/kubernetes/node-problem-detector/config/docker-monitor.json,/home/kubernetes/node-problem-detector/config/systemd-monitor.json --conf
 ```
 
 
@@ -307,152 +460,103 @@ Release:        20.10
 Codename:       groovy
 ```
 
+## Issues
 
-
-TODO:
-
-* Is it possible to upgrade the kernel on the nodes?
-
-  - It's possible to upgrade the distro, but the kernel remained at 5.4 unfortunately.
-
-* Is it possible to create a GCE node with ubuntu-groovy and join it to the cluster?
-
-  - Did not find a way to do this.
-
-* Is there a way to do this with a K8s daemon set?
-
-  - Unlikely; it's possible to install sysbox with the daemon set, but upgrading the kernel on the k8s node seems a bit too much.
-
-* Should we use a GCE VM with a custom image
-
-  https://cloud.google.com/compute/docs/images?_ga=2.3401203.-276768672.1617668269
-
-  - No, because we can't join it to the GKE cluster.
-
-
-
-
-
-
-
-### TODO
-
-  - Is the ubuntu kernel 5.X+
-
-  - Is shiftfs present in the ubuntu kernel? Can it be loaded?
-
-  - What distro is the container optimized OS? Does Sysbox work in there?
-
-
-
-
-## Cloud Shell
-
-* GCP offers a cloud shell.
-
-* It runs in a privileged K8s pod on top of a Debian Buster VM (kernel 5.4):
+### Issue #1: Deploying a sysbox pod fails [FIXED - sysbox-pods branch]
 
 ```
-ctalledo@cloudshell:~ (predictive-fx-309900)$ uname -a
-Linux cs-406612939017-default-default-nqhj5 5.4.89+ #1 SMP Wed Feb 24 19:44:28 PST 2021 x86_64 GNU/Linux
-
-ctalledo@cloudshell:~ (predictive-fx-309900)$ lsb_release -a
-No LSB modules are available.
-Distributor ID: Debian
-Description:    Debian GNU/Linux 10 (buster)
-Release:        10
-Codename:       buster
+Apr 09 22:47:04 gke-my-first-cluster-1-pool-1-fdd5037a-4jp3 kubelet[700121]: I0409 22:47:04.807429  700121 kuberuntime_sandbox.go:64] Running pod alpine-docker_default(f6070b2f-88e0-47e6-a91c-a618ce787dd9) with RuntimeHandler "sysbox-runc"
+Apr 09 22:47:06 gke-my-first-cluster-1-pool-1-fdd5037a-4jp3 kubelet[700121]: E0409 22:47:06.164212  700121 remote_runtime.go:116] RunPodSandbox from runtime service failed: rpc error: code = Unknown desc = container create failed: time="2021-04-09T22:47:06Z"
+   level=error msg="container_linux.go:394: starting container process caused: process_linux.go:592: container init caused: write sysctl key net.netfilter.nf_conntrack_generic_timeout: open /proc/sys/net/netfilter/nf_conntrack_generic_timeout: no such file or directory"
 ```
 
-* The pod was apparently deployed with dockershim, as evidenced by the fact that `/etc/hostname` is backed by `/var/lib/docker/containers/..`.
+* The reason is that k8s is setting up the pod such that it writes to `/proc/sys/net/netfilter/nf_conntrack_generic_timeout`,
+  but this resource is not available inside a sysbox-pod (not exposed inside the user-ns).
 
-* The pod has a mount over `/var/lib/docker` too (so that Docker can run inside)
+* FIX: add handler to sysbox-fs.
 
-* Dockerd is running inside the pod.
-
-* The `gcloud` tool is also running inside the pod; it allows the shell to connect to GCP resources. E.g., to connect to a GKE cluster:
-
+### Issue #2: [FIXED - sysbox-pods branch]
 
 ```
-gcloud container clusters get-credentials my-first-cluster-1 --zone us-central1-c --project predictive-fx-309900
+Apr 09 23:16:56 gke-my-first-cluster-1-pool-1-fdd5037a-4jp3 kubelet[700121]: I0409 23:16:56.806702  700121 kuberuntime_sandbox.go:64] Running pod alpine-docker_default(9d2b470c-ef6b-48b2-b3b9-8ba53a9829ad) with RuntimeHandler "sysbox-runc"
+Apr 09 23:16:57 gke-my-first-cluster-1-pool-1-fdd5037a-4jp3 kubelet[700121]: E0409 23:16:57.930769  700121 remote_runtime.go:116] RunPodSandbox from runtime service failed: rpc error: code = Unknown desc = container create failed: time="2021-04-09T23:16:57Z" level=error msg="container_linux.go:394: starting container process caused: process_linux.go:592: container init caused: write sysctl key net.core.somaxconn: open /proc/sys/net/core/somaxconn: no such file or directory"
 ```
 
+* Same as issue #1 but on `/proc/sys/net/core/somaxconn`.
 
-* Low-level details of the cloud shell pod:
-
-```
-root@cs-406612939017-default-default-pf99c:~# findmnt
-TARGET                                SOURCE                                                                                                                  FSTYPE     OPTIONS
-/                                     overlay                                                                                                                 overlay    rw,relatime,lowerdir=/var/lib/docker/overlay2/l/BF2JFCEOQZ2L2IYZ3A5UJE46NF:
-├─/proc                               proc                                                                                                                    proc       rw,nosuid,nodev,noexec,relatime
-├─/dev                                tmpfs                                                                                                                   tmpfs      rw,nosuid,size=65536k,mode=755
-│ ├─/dev/pts                          devpts                                                                                                                  devpts     rw,nosuid,noexec,relatime,gid=5,mode=620,ptmxmode=666
-│ ├─/dev/mqueue                       mqueue                                                                                                                  mqueue     rw,nosuid,nodev,noexec,relatime
-│ ├─/dev/termination-log              /dev/sda1[/var/lib/kubelet/pods/7fccb20b4bbb99e737878eab4bb685c1/containers/cloudshell/6730d3ca]                        ext4       rw,nosuid,nodev,noexec,relatime,commit=30
-│ └─/dev/shm                          shm                                                                                                                     tmpfs      rw,nosuid,nodev,noexec,relatime,size=65536k
-├─/sys                                sysfs                                                                                                                   sysfs      ro,nosuid,nodev,noexec,relatime
-│ ├─/sys/fs/cgroup                    tmpfs                                                                                                                   tmpfs      rw,nosuid,nodev,noexec,relatime,mode=755
-│ │ ├─/sys/fs/cgroup/systemd          cgroup[/kubepods/besteffort/pod7fccb20b4bbb99e737878eab4bb685c1/cbc5a5ce0e59be70efd95106d567442196c5a55e2e9656eb63dc412f93903f3f]
-│ │ │                                                                                                                                                         cgroup     rw,nosuid,nodev,noexec,relatime,xattr,name=systemd
-│ │ ├─/sys/fs/cgroup/pids             cgroup[/kubepods/besteffort/pod7fccb20b4bbb99e737878eab4bb685c1/cbc5a5ce0e59be70efd95106d567442196c5a55e2e9656eb63dc412f93903f3f]
-│ │ │                                                                                                                                                         cgroup     rw,nosuid,nodev,noexec,relatime,pids
-│ │ ├─/sys/fs/cgroup/devices          cgroup[/kubepods/besteffort/pod7fccb20b4bbb99e737878eab4bb685c1/cbc5a5ce0e59be70efd95106d567442196c5a55e2e9656eb63dc412f93903f3f]
-│ │ │                                                                                                                                                         cgroup     rw,nosuid,nodev,noexec,relatime,devices
-│ │ ├─/sys/fs/cgroup/hugetlb          cgroup[/kubepods/besteffort/pod7fccb20b4bbb99e737878eab4bb685c1/cbc5a5ce0e59be70efd95106d567442196c5a55e2e9656eb63dc412f93903f3f]
-│ │ │                                                                                                                                                         cgroup     rw,nosuid,nodev,noexec,relatime,hugetlb
-│ │ ├─/sys/fs/cgroup/net_cls,net_prio cgroup[/kubepods/besteffort/pod7fccb20b4bbb99e737878eab4bb685c1/cbc5a5ce0e59be70efd95106d567442196c5a55e2e9656eb63dc412f93903f3f]
-│ │ │                                                                                                                                                         cgroup     rw,nosuid,nodev,noexec,relatime,net_cls,net_prio
-│ │ ├─/sys/fs/cgroup/cpu,cpuacct      cgroup[/kubepods/besteffort/pod7fccb20b4bbb99e737878eab4bb685c1/cbc5a5ce0e59be70efd95106d567442196c5a55e2e9656eb63dc412f93903f3f]
-│ │ │                                                                                                                                                         cgroup     rw,nosuid,nodev,noexec,relatime,cpu,cpuacct
-│ │ ├─/sys/fs/cgroup/freezer          cgroup[/kubepods/besteffort/pod7fccb20b4bbb99e737878eab4bb685c1/cbc5a5ce0e59be70efd95106d567442196c5a55e2e9656eb63dc412f93903f3f]
-│ │ │                                                                                                                                                         cgroup     rw,nosuid,nodev,noexec,relatime,freezer
-│ │ ├─/sys/fs/cgroup/perf_event       cgroup[/kubepods/besteffort/pod7fccb20b4bbb99e737878eab4bb685c1/cbc5a5ce0e59be70efd95106d567442196c5a55e2e9656eb63dc412f93903f3f]
-│ │ │                                                                                                                                                         cgroup     rw,nosuid,nodev,noexec,relatime,perf_event
-│ │ ├─/sys/fs/cgroup/cpuset           cgroup[/kubepods/besteffort/pod7fccb20b4bbb99e737878eab4bb685c1/cbc5a5ce0e59be70efd95106d567442196c5a55e2e9656eb63dc412f93903f3f]
-│ │ │                                                                                                                                                         cgroup     rw,nosuid,nodev,noexec,relatime,cpuset
-│ │ ├─/sys/fs/cgroup/rdma             cgroup                                                                                                                  cgroup     rw,nosuid,nodev,noexec,relatime,rdma
-│ │ ├─/sys/fs/cgroup/blkio            cgroup[/kubepods/besteffort/pod7fccb20b4bbb99e737878eab4bb685c1/cbc5a5ce0e59be70efd95106d567442196c5a55e2e9656eb63dc412f93903f3f]
-│ │ │                                                                                                                                                         cgroup     rw,nosuid,nodev,noexec,relatime,blkio
-│ │ └─/sys/fs/cgroup/memory           cgroup[/kubepods/besteffort/pod7fccb20b4bbb99e737878eab4bb685c1/cbc5a5ce0e59be70efd95106d567442196c5a55e2e9656eb63dc412f93903f3f]
-│ │                                                                                                                                                           cgroup     rw,nosuid,nodev,noexec,relatime,memory
-│ └─/sys/kernel/security              none                                                                                                                    securityfs rw,relatime
-├─/root                               /dev/sda1[/var/lib/kubelet/pods/7fccb20b4bbb99e737878eab4bb685c1/volumes/kubernetes.io~empty-dir/root-home-directory]   ext4       rw,nosuid,nodev,noexec,relatime,commit=30
-├─/home                               /dev/sda1[/var/google/home]                                                                                             ext4       rw,nosuid,nodev,noexec,relatime,commit=30
-│ └─/home                             /dev/disk/by-id/google-home-part1                                                                                       ext4       rw,nosuid,nodev,noatime,journal_checksum,errors=remount-ro,data=ordered
-├─/lib/modules                        /dev/dm-0[/lib/modules]                                                                                                 ext2       ro,relatime
-├─/etc/hosts                          /dev/sda1[/var/lib/kubelet/pods/7fccb20b4bbb99e737878eab4bb685c1/etc-hosts]                                             ext4       rw,nosuid,nodev,noexec,relatime,commit=30
-├─/etc/hostname                       /dev/sda1[/var/lib/docker/containers/3478f3eff5feb40315f1f59b0461286336e522a1763122e80e4af251b5ce32c4/hostname]         ext4       rw,nosuid,nodev,relatime,commit=30
-├─/etc/resolv.conf                    /dev/sda1[/var/lib/docker/containers/3478f3eff5feb40315f1f59b0461286336e522a1763122e80e4af251b5ce32c4/resolv.conf]      ext4       rw,nosuid,nodev,relatime,commit=30
-├─/run/metrics                        /dev/sda1[/var/volumes/metrics]                                                                                         ext4       rw,nosuid,nodev,noexec,relatime,commit=30
-├─/etc/ssh/keys                       /dev/sda1[/var/volumes/ssh-keys]                                                                                        ext4       rw,nosuid,nodev,noexec,relatime,commit=30
-├─/var/lib/docker                     /dev/sda1[/var/lib/docker/volumes/f2d20d3c2b6ca933bddb9b4c24ddff780bcd2c17e63cb697393b05ec2d65df37/_data]               ext4       rw,nosuid,nodev,relatime,commit=30
-├─/var/config/tmux                    /dev/sda1[/var/volumes/tmux]                                                                                            ext4       ro,relatime,commit=30
-├─/run/google/devshell                /dev/sda1[/var/lib/kubelet/pods/7fccb20b4bbb99e737878eab4bb685c1/volumes/kubernetes.io~empty-dir/devshell-client-ports] ext4       rw,nosuid,nodev,noexec,relatime,commit=30
-└─/google/host/var/run                tmpfs                                                                                                                   tmpfs      rw,nosuid,nodev,mode=755
-  ├─/google/host/var/run/docker/netns/91e9ce235fd0
-  │                                   nsfs[net:[4026532315]]                                                                                                  nsfs       rw
-  ├─/google/host/var/run/docker/netns/2b7f58084e8c
-  │                                   nsfs[net:[4026532379]]                                                                                                  nsfs       rw
-  └─/google/host/var/run/docker/netns/a0fd65d743d2
-                                      nsfs[net:[4026532253]]
-```
+* In fact, here are all the sysctls that k8s wants to configure by default:
 
 ```
-root@cs-406612939017-default-default-pf99c:~# cat /proc/self/cgroup
-12:memory:/kubepods/besteffort/pod7fccb20b4bbb99e737878eab4bb685c1/cbc5a5ce0e59be70efd95106d567442196c5a55e2e9656eb63dc412f93903f3f
-11:blkio:/kubepods/besteffort/pod7fccb20b4bbb99e737878eab4bb685c1/cbc5a5ce0e59be70efd95106d567442196c5a55e2e9656eb63dc412f93903f3f
-10:rdma:/
-9:cpuset:/kubepods/besteffort/pod7fccb20b4bbb99e737878eab4bb685c1/cbc5a5ce0e59be70efd95106d567442196c5a55e2e9656eb63dc412f93903f3f
-8:perf_event:/kubepods/besteffort/pod7fccb20b4bbb99e737878eab4bb685c1/cbc5a5ce0e59be70efd95106d567442196c5a55e2e9656eb63dc412f93903f3f
-7:freezer:/kubepods/besteffort/pod7fccb20b4bbb99e737878eab4bb685c1/cbc5a5ce0e59be70efd95106d567442196c5a55e2e9656eb63dc412f93903f3f
-6:cpu,cpuacct:/kubepods/besteffort/pod7fccb20b4bbb99e737878eab4bb685c1/cbc5a5ce0e59be70efd95106d567442196c5a55e2e9656eb63dc412f93903f3f
-5:net_cls,net_prio:/kubepods/besteffort/pod7fccb20b4bbb99e737878eab4bb685c1/cbc5a5ce0e59be70efd95106d567442196c5a55e2e9656eb63dc412f93903f3f
-4:hugetlb:/kubepods/besteffort/pod7fccb20b4bbb99e737878eab4bb685c1/cbc5a5ce0e59be70efd95106d567442196c5a55e2e9656eb63dc412f93903f3f
-3:devices:/kubepods/besteffort/pod7fccb20b4bbb99e737878eab4bb685c1/cbc5a5ce0e59be70efd95106d567442196c5a55e2e9656eb63dc412f93903f3f
-2:pids:/kubepods/besteffort/pod7fccb20b4bbb99e737878eab4bb685c1/cbc5a5ce0e59be70efd95106d567442196c5a55e2e9656eb63dc412f93903f3f
-1:name=systemd:/kubepods/besteffort/pod7fccb20b4bbb99e737878eab4bb685c1/cbc5a5ce0e59be70efd95106d567442196c5a55e2e9656eb63dc412f93903f3f
-0::/system.slice/containerd.service
+net.core.somaxconn=1024,                       <<< NEEDS EMULATION [FIXED - sysbox-pods branch]
+net.ipv4.conf.all.accept_redirects=0,
+net.ipv4.conf.all.forwarding=1,
+net.ipv4.conf.all.route_localnet=1,
+net.ipv4.conf.default.forwarding=1,
+net.ipv4.ip_forward=1,
+net.ipv4.tcp_fin_timeout=60,
+net.ipv4.tcp_keepalive_intvl=60,
+net.ipv4.tcp_keepalive_probes=5,
+net.ipv4.tcp_keepalive_time=300,
+net.ipv4.tcp_rmem=4096 87380 6291456,
+net.ipv4.tcp_syn_retries=6,
+net.ipv4.tcp_tw_reuse=0,
+net.ipv4.tcp_wmem=4096 16384 4194304,
+net.ipv4.udp_rmem_min=4096,
+net.ipv4.udp_wmem_min=4096,
+net.ipv6.conf.default.accept_ra=0,
+net.netfilter.nf_conntrack_generic_timeout=600,
+net.netfilter.nf_conntrack_tcp_be_liberal=1,                   <<< NEEDS EMULATION [FIXED - sysbox-pods branch]
+net.netfilter.nf_conntrack_tcp_timeout_close_wait=3600,
+net.netfilter.nf_conntrack_tcp_timeout_established=86400'
 ```
+
+### Issue #3
+
+* sysbox-mgr log shows this error on a gke node:
+
+```
+time="2021-04-10 00:48:50" level=warning msg="failed to get image id for container 7f0c683552bf4cdbc57f50ceec1c38b98fc29e06fb45c9f1ed6bd6b518f8642a: failed to retrieve Docker info: Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?"
+```
+
+* There is no docker daemon running on the node, so this is expected.
+
+* Looks related to inner docker image sharing.
+
+
+## GKE + Sysbox Summary
+
+* Use K8s nodes based on the "Ubuntu with containerd" option
+
+  - These carry Ubuntu Bionic with a 5.4 kernel, thus meeting Sysbox's requirements.
+
+
+## TODO
+
+* Review and cleanup the notes
+
+* Complete GKE + Sysbox summary section
+
+* Modify the sysbox installer to install correctly even if docker containers are running.
+
+  - This way sysbox can install on the "ubuntu with docker" nodes, where it's
+    certain that docker containers will be running as K8s uses Docker to create
+    pods for control-plane components.
+
+* Modify the sysbox installer to not ask any questions.
+
+  - This will allow us to automate the process (e.g., have a daemonSet to the installation).
+
+* Have the sysbox installer check that the config it's doing for docker does not collide with the docker systemd service command line.
+
+  - Otherwise we hit an error such as: `Apr 07 00:23:07 gke-my-first-cluster-1-pool-1-90e66ff8-dmmk dockerd[135412]: unable to configure the Docker daemon with file /etc/docker/daemon.json: the following directives are specified both as a flag and in the configuration file: bip: (from flag: 169.254.123.1/24, from file: 172.20.0.1/16)`
+
+* Fix this sysbox-mgr issue: sysbox-mgr log shows this error on a gke node:
+
+```
+time="2021-04-10 00:48:50" level=warning msg="failed to get image id for container 7f0c683552bf4cdbc57f50ceec1c38b98fc29e06fb45c9f1ed6bd6b518f8642a: failed to retrieve Docker info: Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?"
+```
+
+* Create a daemon-set to automate the config
 
 
 ## References
