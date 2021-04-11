@@ -3,13 +3,25 @@
 This document describes how to manually install Sysbox on a GKE Kubernetes
 cluster node.
 
-* NOTE: Manual configurations on a GKE Kubernetes (K8s) node DO NOT PERSIST if
-  the node is destroyed and re-created (e.g., if it becomes unhealthy and GKE
-  decides to replace it).
+*   NOTE: Manual configurations on a GKE Kubernetes (K8s) node DO NOT PERSIST if
+    the node is destroyed and re-created (e.g., if it becomes unhealthy and GKE
+    decides to replace it).
 
-* Nestybox is developing a Kubernetes (K8s) daemon-set that will perform this
-  setup automatically and which ensures persistence across a node's life-cycle.
+*   Nestybox is developing a Kubernetes (K8s) daemonset that will perform this
+    setup automatically and which ensures the configuration persists across a
+    node's life-cycle.
 
+## Contents
+
+*   [Why Sysbox on GKE?](#why-sysbox-on-gke)
+*   [GKE Requirements](#gke-requirements)
+*   [Sysbox Installation](#sysbox-installation)
+*   [Setup Steps](#setup-steps)
+*   [Sysbox Container Images](#sysbox-container-images)
+*   [Pod Isolation / Security](#pod-isolation--security)
+*   [Volume Mounts](#volume-mounts)
+*   [Upgrading Sysbox](#upgrading-sysbox)
+*   [Uninstalling Sysbox](#uninstalling-sysbox)
 
 ## Why Sysbox on GKE?
 
@@ -28,16 +40,14 @@ complexity on the K8s cluster admin & users.
 With Sysbox this insecurity and complexity go away: the pods are well isolated,
 and Sysbox absorbs all the complexity of setting up the pod correctly.
 
-
 ## GKE Requirements
 
 To use Sysbox on GKE, you need a GKE K8s cluster with K8s version 1.20.
 
-* By default GKE chooses the K8s 1.19 version.
+*   By default GKE chooses the K8s 1.19 version.
 
-* However the GKE "rapid channel" carries the 1.20 version. Upgrade the cluster
-  to this version before installing Sysbox on the cluster nodes.
-
+*   However the GKE "rapid channel" carries the 1.20 version. Upgrade the cluster
+    to this version before installing Sysbox on the cluster nodes.
 
 ## Sysbox Installation
 
@@ -51,32 +61,29 @@ default GKE low-level runtime (OCI runc), or any other runtime you choose.
 Pods deployed with Sysbox are managed via GKE just like any other pods, and
 can communicate with any other pods according to your K8s networking policy.
 
-
 ## Setup Steps
 
 These are the high-level steps to setup Sysbox on GKE:
 
-1) Create GKE K8s nodes using the "Ubuntu with Containerd" image.
+1.  Create GKE K8s nodes using the "Ubuntu with Containerd" image.
 
-2) Configure each node:
+2.  Configure each node:
 
-  a) Install CRI-O
+a) Install CRI-O
 
-  b) Install Shifts
+b) Install Shifts
 
-  c) Install Sysbox
+c) Install Sysbox
 
-  d) Configure Kubelet to use CRI-O
+d) Configure Kubelet to use CRI-O
 
-3) Add the K8s runtime class for Sysbox and label the nodes
+3.  Add the K8s runtime class for Sysbox and label the nodes
 
-4) Deploy your pods
-
+4.  Deploy your pods
 
 Details for each step are in the sections that follow.
 
-
-## Step 1: Create GKE K8s nodes based on the "Ubuntu with Containerd" image
+### Step 1: Create GKE K8s nodes based on the "Ubuntu with Containerd" image
 
 If you have nodes based on this image already, then skip this step. Otherwise
 follow the sub-steps below.
@@ -87,13 +94,13 @@ kernel, thus meeting Sysbox's requirements.
 
 To do this via the GKE web interface:
 
-* Select the desired K8s cluster
+*   Select the desired K8s cluster
 
-* Select "Add Node Pool"
+*   Select "Add Node Pool"
 
-* Select "Nodes -> Image Type" to "Ubuntu with Containerd (ubuntu_containerd)".
+*   Select "Nodes -> Image Type" to "Ubuntu with Containerd (ubuntu_containerd)".
 
-* Configure any other parameters for the nodes and node-pool per your
+*   Configure any other parameters for the nodes and node-pool per your
     requirements (e.g., number of nodes, machine type, disk size, etc.)
 
 We recommend the node have 4 vCPUs and 4GB RAM at a minimum.
@@ -102,16 +109,15 @@ Note that it's fine to have a cluster with heterogeneous nodes, where some have
 Sysbox installed and some don't. In a subsequent step we will label the nodes so
 K8s can schedule pods that require Sysbox on the appropriate node(s).
 
-
-## Step 2: Per-Node Setup
+### Step 2: Per-Node Setup
 
 This is the most tedious part of the process. Nestybox is developing a K8s
-daemon-set that will take care of this automatically.
+daemonset that will take care of this automatically.
 
 Apply the following sub-steps on each node. You'll need to ssh into the
 node(s) and have root privileges on it.
 
-### a) Install CRI-O
+#### a) Install CRI-O
 
 CRI-O is a container runtime. It logically sits between K8s and Sysbox (i.e.,
 K8s sends pod creation commands to kubelet, which then talks to CRI-O, which
@@ -126,11 +132,11 @@ but we repeat them here for convenience.
 
 Please use CRI-O v1.20 so that it matches the K8s version.
 
-* CRI-O versions < v1.20 do not support rootless pods, so they won't work
-  with Sysbox.
+*   CRI-O versions < v1.20 do not support rootless pods, so they won't work
+    with Sysbox.
 
-* CRI-O versions > v1.20 won't work either since they don't match the K8s cluster version
-  and are not yet tested with Sysbox.
+*   CRI-O versions > v1.20 won't work either since they don't match the K8s cluster version
+    and are not yet tested with Sysbox.
 
 In the steps below, note that the shell environment variable "OS" must match the
 node's distro (e.g., Ubuntu 18.04 (Bionic)) and "VERSION" must match the K8s
@@ -152,7 +158,7 @@ apt-get update
 apt-get install cri-o cri-o-runc
 ```
 
-### b) Install Shiftfs
+#### b) Install Shiftfs
 
 The shiftfs kernel module is needed if you want support for host volume mounts
 on pods deployed with K8s + Sysbox.
@@ -184,7 +190,7 @@ Then verify shiftfs is loaded in the kernel:
 lsmod | grep shiftfs
 ```
 
-### c) Install Sysbox
+#### c) Install Sysbox
 
 Use a Sysbox package version that supports sysbox-pods.
 
@@ -198,7 +204,7 @@ NOTE: If the sysbox package installer asks about configuring Docker, answer "no"
 
 Configure CRI-O to learn about Sysbox by editing the `/etc/crio/crio.conf` file as follows:
 
-* Modify the cgroup settings:
+*   Modify the cgroup settings:
 
 ```toml
 # Cgroup setting for conmon
@@ -210,7 +216,7 @@ conmon_cgroup = "pod"
 cgroup_manager = "cgroupfs"
 ```
 
-* Add the sysbox runtime setting:
+*   Add the sysbox runtime setting:
 
 ```toml
 # Sysbox runtime
@@ -232,7 +238,7 @@ Finally verify CRI-O is happy:
 systemctl status crio
 ```
 
-### d) Configure Kubelet to use CRI-O
+#### d) Configure Kubelet to use CRI-O
 
 By default, Kubelet is configured to use the containerd runtime to create pods.
 
@@ -271,12 +277,10 @@ kubectl get nodes
 If all is good, the node in which we just reconfigured the kubelet should show
 up as "Ready" in K8s.
 
-
 That's it for installations. This was the harder part of the setup and from here
 on it should be prety easy.
 
-
-## Step 3: Add the K8s runtime class for Sysbox and label the nodes
+### Step 3: Add the K8s runtime class for Sysbox and label the nodes
 
 In order for K8s to become aware of Sysbox, a new "runtime class" resource must
 be applied:
@@ -303,7 +307,7 @@ For each node where Sysbox is installed:
 kubectl label nodes <node-name> sysboxInNode=true
 ```
 
-## Step 4: Deploy pods
+### Step 4: Deploy pods
 
 Now to the fun part: create a pod spec and deploy it!
 
@@ -331,13 +335,13 @@ spec:
 
 There are 3 key pieces of the pod's spec that tie it to Sysbox:
 
-  - "runtimeClassName": Tells K8s to deploy the pod with Sysbox (rather than the
+*   "runtimeClassName": Tells K8s to deploy the pod with Sysbox (rather than the
     default OCI runc).
 
-  - "nodeSelector": Tells K8s to deploy the pod on a node that is labeled with
+*   "nodeSelector": Tells K8s to deploy the pod on a node that is labeled with
     "sysboxInNode=true" (i.e., on a node where sysbox is installed).
 
-  - "io.kubernetes.cri-o.userns-mode": Tells CRI-O to launch this as a rootless
+*   "io.kubernetes.cri-o.userns-mode": Tells CRI-O to launch this as a rootless
     pod (i.e., via the Linux user-namespace) and to allocate a range of 65536
     Linux user-namespace user and group IDs. This is required for Sysbox pods.
 
@@ -348,17 +352,16 @@ systemd won't be pid 1 in the pod and will fail).
 
 That's all! the next sections touch on other topics related to Sysbox pods.
 
-
-# Sysbox Container Images
+## Sysbox Container Images
 
 The pod in the prior example uses the `ghcr.io/nestybox/ubuntu-bionic-systemd-docker`,
 but you can use any container image you want.
 
-- Sysbox places no requirements on the container image.
+*   Sysbox places no requirements on the container image.
 
 Nestybox has several images which you can find here:
 
-  https://hub.docker.com/u/nestybox
+https://hub.docker.com/u/nestybox
 
 Those same images are in the Nestybox GitHub registry (`ghcr.io/nestybox/<image-name>`).
 
@@ -366,8 +369,7 @@ Some of those images carry systemd only, others carry systemd + Docker, other
 carry systemd + K8s (yes, you can run K8s inside rootless pods deployed by
 Sysbox).
 
-
-# Pod Isolation / Security
+## Pod Isolation / Security
 
 Pods deployed with Sysbox are rootless (i.e., the root user in the pod maps to
 an unprivileged user on the host).
@@ -382,11 +384,10 @@ Each pod gets as dedicated user-namespace with exclusive user-ID and group-ID
 mappings. This provides strong pod-to-pod isolation (in addition to strong
 pod-to-host isolation).
 
-
-# Volume Mounts
+## Volume Mounts
 
 If you wish to mount host volumes into a K8s pod deployed with Sysbox, the K8s
-node's kernel must carry the `shiftfs` kernel module (see [above](#b--install-shiftfs)).
+node's kernel must carry the `shiftfs` kernel module (see [above](#b-install-shiftfs)).
 
 This is because such pods are rootless (as described in the prior section),
 meaning that the root user inside the pod maps to a non-root user on the host
@@ -439,22 +440,21 @@ the pods each get exclusive Linux user-namespace user-ID and group-ID mappings.
 Each pod will see the files with proper ownership inside the pod (e.g., owned
 by users 0->65536) inside the pod.
 
-
-# Upgrading Sysbox
+## Upgrading Sysbox
 
 To upgrade Sysbox follow these steps on each node where Sysbox is installed:
 
-1) Drain all sysbox pods from the node.
+1.  Drain all sysbox pods from the node.
 
-  - You may need to cordon off the node to prevent K8s from deploying new Sysbox-based pods in it.
+*   You may need to cordon off the node to prevent K8s from deploying new Sysbox-based pods in it.
 
-2) Remove Sysbox from the node:
+2.  Remove Sysbox from the node:
 
 ```console
 sudo dpkg --purge sysbox
 ```
 
-3) Install the desired version of Sysbox:
+3.  Install the desired version of Sysbox:
 
 ```console
 sudo dpkg -i <sysbox-pkg>
@@ -464,25 +464,24 @@ where `<sysbox-pkg>` is the new version of Sysbox (e.g., downloaded from GitHub)
 
 NOTE: you don't need to restart CRI-O or Kubelet when upgrading Sysbox.
 
-4) If you cordoned the node, then remove the cordon to allow K8s to schedule
-Sysbox pods on it.
+4.  If you cordoned the node, then remove the cordon to allow K8s to schedule
+    Sysbox pods on it.
 
-
-# Uninstalling Sysbox
+## Uninstalling Sysbox
 
 To upgrade Sysbox follow these steps on each node where Sysbox is installed:
 
-1) Delete all sysbox pods on the node.
+1.  Delete all sysbox pods on the node.
 
-  - You may need to cordon off the node to prevent K8s from deploying new Sysbox-based pods in it.
+*   You may need to cordon off the node to prevent K8s from deploying new Sysbox-based pods in it.
 
-2) Remove Sysbox from the node:
+2.  Remove Sysbox from the node:
 
 ```console
 sudo dpkg --purge sysbox
 ```
 
-3) Optionally, remove the Sysbox configuration from CRI-O's config file (`/etc/crio/crio.conf`):
+3.  Optionally, remove the Sysbox configuration from CRI-O's config file (`/etc/crio/crio.conf`):
 
 Remove these lines:
 
@@ -494,8 +493,8 @@ runtime_type = "oci"
 allowed_annotations = ["io.kubernetes.cri-o.userns-mode"]
 ```
 
-4) Changes to the CRI-O config file won't take effect unless CRI-O is restarted. You can choose
-to restart now or later.
+4.  Changes to the CRI-O config file won't take effect unless CRI-O is restarted. You can choose
+    to restart now or later.
 
 NOTE: when restarting CRI-O, all K8s control-plane pods on the node will be restarted,
 meaning that the node will become temporarily unavailable.
