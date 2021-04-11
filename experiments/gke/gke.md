@@ -392,7 +392,10 @@ gke-my-first-cluster-1-pool-1-fdd5037a-4jp3         Ready    <none>   2d16h   v1
 
 ### Dynamic kubelet config
 
-* k8s formally supports reconfiguring the kubelet dynamically:
+* k8s formally supports reconfiguring the kubelet dynamically, though I did not
+  use it. I am noting this down for reference only.
+
+* Info on this here:
 
   https://kubernetes.io/docs/tasks/administer-cluster/reconfigure-kubelet/
 
@@ -402,9 +405,13 @@ gke-my-first-cluster-1-pool-1-fdd5037a-4jp3         Ready    <none>   2d16h   v1
 
    NOTE: I don't see the `--container-runtime-endpoint` in there :(
 
-* For each node that you're reconfiguring, you must set the kubelet --dynamic-config-dir flag to a writable directory.
+* For each node that you're reconfiguring, you must set the kubelet
+  --dynamic-config-dir flag to a writable directory.
 
-* The new configuration completely overrides configuration provided by --config, and is overridden by command-line flags.  <<< THE LATTER MAY BE A PROBLEM FOR CONFIGURING KUBELET WITH CRI-O, BECAUSE THE CMD LINE IS POINTING KUBELET TO CONTAINERD
+* The new configuration completely overrides configuration provided by --config,
+  and is overridden by command-line flags.  <<< THE LATTER MAY BE A PROBLEM FOR
+  CONFIGURING KUBELET WITH CRI-O, BECAUSE THE CMD LINE IS POINTING KUBELET TO
+  CONTAINERD
 
 
 ## Node Health Monitoring
@@ -430,35 +437,23 @@ kubectl get node <node> -o json | jq ".status"
 ```
 
 
-#### Creating a GCE node and joining it to the cluster
+## Installing Shiftfs (required if doing volume mounts into the Sysbox pods)
 
-* I created a ubuntu-focal node on GCE, but it's still a 5.4 kernel:
+* Dependencies:
 
-```
-ctalledo@ubuntu-focal-1:~$ uname -a
-Linux ubuntu-focal-1 5.4.0-1040-gcp #43-Ubuntu SMP Fri Mar 19 17:49:48 UTC 2021 x86_64 x86_64 x86_64 GNU/Linux
+`make, dkms`
 
-ctalledo@ubuntu-focal-1:~$ lsb_release -a
-No LSB modules are available.
-Distributor ID: Ubuntu
-Description:    Ubuntu 20.04.2 LTS
-Release:        20.04
-Codename:       focal
-```
-
-* However, the ubuntu-groovy images on GCE have a 5.8 kernel!
+* Procedure to build and install the shiftfs module:
 
 ```
-ctalledo@ubuntu-groovy-1:~$ uname -a
-Linux ubuntu-groovy-1 5.8.0-1026-gcp #27-Ubuntu SMP Sat Mar 20 03:55:48 UTC 2021 x86_64 x86_64 x86_64 GNU/Linux
-
-ctalledo@ubuntu-groovy-1:~$ lsb_release -a
-No LSB modules are available.
-Distributor ID: Ubuntu
-Description:    Ubuntu 20.10
-Release:        20.10
-Codename:       groovy
+git clone -b k5.4 https://github.com/toby63/shiftfs-dkms.git shiftfs-k54
+cd shiftfs-k54
+./update1
+sudo make -f Makefile.dkms
+echo shiftfs | sudo tee /etc/modules-load.d/shiftfs.conf
+sudo modprobe shiftfs
 ```
+
 
 ## Issues
 
@@ -523,18 +518,39 @@ time="2021-04-10 00:48:50" level=warning msg="failed to get image id for contain
 * Looks related to inner docker image sharing.
 
 
-## GKE + Sysbox Summary
+## GKE + Sysbox Setup Summary
 
 * Use K8s nodes based on the "Ubuntu with containerd" option
 
   - These carry Ubuntu Bionic with a 5.4 kernel, thus meeting Sysbox's requirements.
 
+* Install CRI-O
+
+* Install Sysbox
+
+* Configure Kubelet to use CRI-O
+
+* Add the K8s runtime class for sysbox
+
+* Label the node(s) with Sysbox
+
+* Deploy the pod
+
 
 ## TODO
 
-* Review and cleanup the notes
+* Review and cleanup the notes [DONE]
 
-* Complete GKE + Sysbox summary section
+* Complete GKE + Sysbox summary section [DONE]
+
+* Write down Sysbox on GKE installation guide [IN-PROG]
+
+  - Needs spell-check and remark TOC.
+
+* Write down Sysbox on K8s installation guide
+
+  - Same as for GKE but for a non-managed K8s cluster.
+
 
 * Modify the sysbox installer to install correctly even if docker containers are running.
 
@@ -556,7 +572,28 @@ time="2021-04-10 00:48:50" level=warning msg="failed to get image id for contain
 time="2021-04-10 00:48:50" level=warning msg="failed to get image id for container 7f0c683552bf4cdbc57f50ceec1c38b98fc29e06fb45c9f1ed6bd6b518f8642a: failed to retrieve Docker info: Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?"
 ```
 
+* Come up with fix for volume mount ownership problem
+
+  - Maybe load shiftfs into kernel (for ubuntu)  <<< only good solution now
+
+  - Or use id mapped mounts (kernel 5.12+)  <<< future solution
+
+  - Or have option for sysbox to chown  <<< not viable (can't share files with host)
+
+  - Or ask users to enable "other" permissions (too lax)  <<< not secure.
+
+
 * Create a daemon-set to automate the config
+
+  - First write a script that does this on a bare-metal host
+
+  - Then containerize that script
+
+    - Include deps to build and install shiftfs (if running on ubuntu)
+
+  - Then create the daemon set spec (with th require host dir mounts)
+
+
 
 
 ## References
