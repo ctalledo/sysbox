@@ -229,7 +229,7 @@ kubectl taint node k8s-node node-role.kubernetes.io/master:NoSchedule-
 
     - Fixed it by adding `driver = "overlay"` to /etc/containers/storage.conf  (see man 5 containers-storage.conf)
 
-* Config file: `/etc/CRI-O/CRI-O.conf` or `/etc/CRI-O/CRI-O.conf.d/00-sysbox.conf`
+* Config file: `/etc/crio/crio.conf` or `/etc/crio/crio.conf.d/00-sysbox.conf`
 
 ```
 allow_userns_annotation = true   <<< older CRI-O versions only; not needed in newer CRI-O versions.
@@ -356,7 +356,7 @@ debug: false
 pull-image-on-create: false
 ```
 
-* For CRI-O use: `unix:///var/run/CRI-O/CRI-O.sock`
+* For CRI-O use: `unix:///var/run/crio/crio.sock`
 
 * You can talk to CRI-O via critcl or directly via it's HTTP API:
 
@@ -455,6 +455,27 @@ sudo crictl exec -i -t 4907f5c792a28 /bin/sh
    }
 }
 ```
+
+* Crictl errors & solutions:
+
+Error: not enough available IDs:
+
+```
+FATA[0001] running container: run pod sandbox: rpc error: code = Unknown desc = error creating pod sandbox with name "k8s_alpine-sandbox_default_sysbox-pod_1": could not find enough available IDs
+```
+
+Solution: add user "containers" to `/etc/subuid` and `/etc/subgid`.
+
+
+Error:
+
+```
+No CNI configuration file in /etc/cni/net.d/.
+```
+
+Solution: add CNI
+
+
 
 
 ## Issues
@@ -1211,18 +1232,37 @@ arting container process caused "process_linux.go:449: container init caused \"r
 
 * Rebase sysbox-pod branches based on latest changes in master branches.  [DONE]
 
-* Stabilize sysbox-pods in dev machine   <<< HERE
+* Submit sysbox-pod PRs to sysbox internal branches. [IN-PROG]
 
-* Verify it works well in k8s host too
+  - sysbox-fs-internal [REVIEW DONE, NEEDS MERGING]
 
-* Submit sysbox-pod PRs. [IN-PROG]
+  - sysbox-runc-internal [PENDING REVIEW]
 
-  - sysbox-fs [IN-PROG]
+  - sysbox-mgr-internal [PENDING REVIEW]
+
+  - sysbox-ipc-internal [PENDING REVIEW]
+
+  - sysbox-libs-internal [PENDING REVIEW]
+
+  - sysbox-internal
 
 
-* Create package for GKE (ubu-bionic)
+* Create package for GKE (ubu-bionic) [DONE]
 
-* Try installing sysbox on a GCP k8s node
+* Try installing sysbox on a GCP k8s node [DONE]
+
+* Write up sysbox install daemon-set
+
+  - Use Kata-Deploy as example
+
+  - https://github.com/kata-containers/packaging/tree/master/kata-deploy/examples
+
+* Write up a docker-based sysbox installer
+
+  - Use Kata-Deploy as example
+
+  - Would void need for RPM package
+
 
 * Send sysbox pods early sample to Okteto.
 
@@ -1232,6 +1272,8 @@ arting container process caused "process_linux.go:449: container init caused \"r
 # time="2021-04-04 19:08:25" level=error msg="FUSE file-system could not be unmounted: waitid: no child processes"
 # time="2021-04-04 19:08:25" level=error msg="FuseServer to destroy could not be eliminated for container id 0e23da6a824f5ab30bc18c70a5d6f7180ca6d32395ad5154ec0f6036cc19c55e"
 ```
+
+* Come up with solution for CRI-O versions > 1.20
 
 * Remove all unneeded usage of userns in sysbox-fs
 
@@ -1263,8 +1305,6 @@ arting container process caused "process_linux.go:449: container init caused \"r
 
 * Write up docs on how to use sysbox pods
 
-* Write up sysbox install daemon-set
-
 * Cleanup github issues
 
 * Fix problem with sysbox-mgr failing to init `/var/lib/sysbox` correctly sometimes.
@@ -1273,4 +1313,20 @@ arting container process caused "process_linux.go:449: container init caused \"r
 
   - This way we always use the same UID for all containers.
 
-* Modify sysbox installer to not require Docker; update docs accordingly.
+* Modify sysbox installer to not require Docker [DONE - sysbox-pkgr repo, sysbox-pod branch]
+
+  - Modify sysbox docs accordingly
+
+* Modify sysbox installer to configure CRI-O with Sysbox.
+
+* Fix this problem with sysbox's systemd service unit on ubu bionic:
+
+```
+systemctl status sysbox
+
+Apr 09 05:49:22 gke-my-first-cluster-1-pool-1-fdd5037a-4jp3 systemd[1]: /lib/systemd/system/sysbox.service:15: Failed to parse service type, ignoring: exec
+```
+
+* write tests for newly added sysbox-fs proc handlers.
+
+* sysbox-fs: log when modifying a host sysctl.

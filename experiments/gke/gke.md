@@ -543,34 +543,19 @@ time="2021-04-10 00:48:50" level=warning msg="failed to get image id for contain
 
 * Complete GKE + Sysbox summary section [DONE]
 
-* Write down Sysbox on GKE installation guide [IN-PROG]
+* Write down Sysbox on GKE manual installation guide [DONE]
 
-  - Needs spell-check and remark TOC.
+* Write down Sysbox on (raw) K8s installation guide
 
-* Write down Sysbox on K8s installation guide
+* Fix this sysbox-mgr spurios warning about "failed to retrieve docker info" [DONE]
 
-  - Same as for GKE but for a non-managed K8s cluster.
+* Modify the sysbox installer to not ask any questions for easier install. [SKIP]
 
-
-* Modify the sysbox installer to install correctly even if docker containers are running.
-
-  - This way sysbox can install on the "ubuntu with docker" nodes, where it's
-    certain that docker containers will be running as K8s uses Docker to create
-    pods for control-plane components.
-
-* Modify the sysbox installer to not ask any questions.
-
-  - This will allow us to automate the process (e.g., have a daemonSet to the installation).
+  - Can be bypassed with `yes | dpkg -i ...`
 
 * Have the sysbox installer check that the config it's doing for docker does not collide with the docker systemd service command line.
 
-  - Otherwise we hit an error such as: `Apr 07 00:23:07 gke-my-first-cluster-1-pool-1-90e66ff8-dmmk dockerd[135412]: unable to configure the Docker daemon with file /etc/docker/daemon.json: the following directives are specified both as a flag and in the configuration file: bip: (from flag: 169.254.123.1/24, from file: 172.20.0.1/16)`
-
-* Fix this sysbox-mgr issue: sysbox-mgr log shows this error on a gke node:
-
-```
-time="2021-04-10 00:48:50" level=warning msg="failed to get image id for container 7f0c683552bf4cdbc57f50ceec1c38b98fc29e06fb45c9f1ed6bd6b518f8642a: failed to retrieve Docker info: Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?"
-```
+  - Otherwise we hit an error such as: `dockerd[135412]: unable to configure the Docker daemon with file /etc/docker/daemon.json: the following directives are specified both as a flag and in the configuration file: bip: (from flag: 169.254.123.1/24, from file: 172.20.0.1/16)`
 
 * Come up with fix for volume mount ownership problem
 
@@ -581,7 +566,6 @@ time="2021-04-10 00:48:50" level=warning msg="failed to get image id for contain
   - Or have option for sysbox to chown  <<< not viable (can't share files with host)
 
   - Or ask users to enable "other" permissions (too lax)  <<< not secure.
-
 
 * Create a daemon-set to automate the config
 

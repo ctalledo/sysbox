@@ -111,8 +111,8 @@ K8s can schedule pods that require Sysbox on the appropriate node(s).
 
 ### Step 2: Per-Node Setup
 
-This is the most tedious part of the process. Nestybox is developing a K8s
-daemonset that will take care of this automatically.
+This is the most tedious part of the process to do manually. Nestybox is
+developing a K8s daemonset that will take care of this automatically.
 
 Apply the following sub-steps on each node. You'll need to ssh into the
 node(s) and have root privileges on it.
@@ -283,7 +283,24 @@ on it should be prety easy.
 ### Step 3: Add the K8s runtime class for Sysbox and label the nodes
 
 In order for K8s to become aware of Sysbox, a new "runtime class" resource must
-be applied:
+be applied.
+
+But before doing so, if only some nodes in the cluster have Sysbox but some don't,
+you need to label the Sysbox nodes so that you can direct K8s to schedule the
+desired pods on them.
+
+You can chose whatever label you want. In the example below we use the label
+"sysboxInNode=true", but you can choose any other label that makes sense to you
+(e.g., "nodeSupportsSysbox=yes", etc.)
+
+For each node where Sysbox is installed, label them with:
+
+```console
+kubectl label nodes <node-name> sysboxInNode=true
+```
+
+Once you've labeled the nodes, you define the runtime class resource for
+Sysbox as follows:
 
 ```yaml
 apiVersion: node.k8s.io/v1beta1
@@ -291,21 +308,13 @@ kind: RuntimeClass
 metadata:
   name: sysbox-runc
 handler: sysbox-runc
+scheduling:
+  nodeSelector:
+     sysboxInNode: true
 ```
 
-In addition, if only some nodes in the cluster have Sysbox but some don't, you
-need to label the Sysbox nodes so that you can direct K8s to schedule the
-desired pods on them.
-
-You can chose whatever label you want. In the example below we use the label
-"sysboxInNode=true", but you can choose any other that makes sense to you (e.g.,
-"nodeSupportsSysbox=yes", etc.)
-
-For each node where Sysbox is installed:
-
-```console
-kubectl label nodes <node-name> sysboxInNode=true
-```
+The `scheduling.nodeSelector` ensures that all pods that use this runtime class
+will be scheduled on nodes that support Sysbox.
 
 ### Step 4: Deploy pods
 
@@ -329,17 +338,13 @@ spec:
     image: ghcr.io/nestybox/ubuntu-bionic-systemd-docker
     command: ["/sbin/init"]
   restartPolicy: Never
-  nodeSelector:
-    sysboxInNode: true
 ```
 
-There are 3 key pieces of the pod's spec that tie it to Sysbox:
+There are two key pieces of the pod's spec that tie it to Sysbox:
 
 *   "runtimeClassName": Tells K8s to deploy the pod with Sysbox (rather than the
-    default OCI runc).
-
-*   "nodeSelector": Tells K8s to deploy the pod on a node that is labeled with
-    "sysboxInNode=true" (i.e., on a node where sysbox is installed).
+    default OCI runc). The pods will be scheduled on the nodes that support
+    Sysbox.
 
 *   "io.kubernetes.cri-o.userns-mode": Tells CRI-O to launch this as a rootless
     pod (i.e., via the Linux user-namespace) and to allocate a range of 65536
