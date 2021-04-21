@@ -1246,10 +1246,15 @@ arting container process caused "process_linux.go:449: container init caused \"r
 
   - sysbox-internal
 
-
 * Create package for GKE (ubu-bionic) [DONE]
 
 * Try installing sysbox on a GCP k8s node [DONE]
+
+* Debug hang in kind test
+
+  - Submit fix to sysbox-ce
+
+  - Port fix to sysbox-internal
 
 * Write up sysbox install daemon-set
 

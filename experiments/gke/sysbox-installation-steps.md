@@ -216,6 +216,15 @@ conmon_cgroup = "pod"
 cgroup_manager = "cgroupfs"
 ```
 
+* Set the CRI-O storage driver to "overlayfs" with "metacopy=on"; make sure to
+  remove the "nodev" option too (if present):
+
+```toml
+# Storage driver
+crio.storage_driver=overlay
+crio.storage_option=["overlay.mountopt=metacopy=on"]
+```
+
 *   Add the sysbox runtime setting:
 
 ```toml
