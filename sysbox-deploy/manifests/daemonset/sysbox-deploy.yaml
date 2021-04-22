@@ -1,0 +1,63 @@
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: sysbox-deploy
+  namespace: kube-system
+spec:
+  selector:
+      matchLabels:
+        name: sysbox-deploy
+  template:
+    metadata:
+        labels:
+          name: sysbox-deploy
+    spec:
+      serviceAccountName: sysbox-label-node
+      containers:
+      - name: kube-sysbox
+        image: nestybox/sysbox-deploy
+        imagePullPolicy: Always
+        lifecycle:
+          preStop:
+            exec:
+              command: ["bash", "-c", "/opt/sysbox/scripts/sysbox-deploy-k8s cleanup"]
+        command: [ "bash", "-c", "/opt/sysbox/scripts/sysbox-deploy-k8s install" ]
+        env:
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        securityContext:
+          privileged: false
+        volumeMounts:
+        - name: crio-conf
+          mountPath: /etc/crio/
+        - name: dbus
+          mountPath: /var/run/dbus
+        - name: run-systemd
+          mountPath: /run/systemd
+        - name: lib-systemd
+          mountPath: /mnt/host/lib/systemd
+        - name: usr-bin
+          mountPath: /mnt/host/usr/bin/
+      volumes:
+        - name: crio-conf
+          hostPath:
+            path: /etc/crio/
+        - name: dbus
+          hostPath:
+            path: /var/run/dbus
+        - name: run-systemd
+          hostPath:
+            path: /run/systemd
+        - name: lib-systemd
+          hostPath:
+            path: /lib/systemd
+        - name: usr-bin
+          hostPath:
+            path: /usr/bin/
+  updateStrategy:
+    rollingUpdate:
+      maxUnavailable: 1
+    type: RollingUpdate
