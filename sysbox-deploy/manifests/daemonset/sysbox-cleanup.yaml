@@ -2,25 +2,25 @@
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: kubelet-sysbox-cleanup
+  name: sysbox-cleanup
   namespace: kube-system
 spec:
   selector:
       matchLabels:
-        name: kubelet-sysbox-cleanup
+        name: sysbox-cleanup
   template:
     metadata:
         labels:
-          name: kubelet-sysbox-cleanup
+          name: sysbox-cleanup
     spec:
       serviceAccountName: sysbox-label-node
       nodeSelector:
-          sysbox-runtime: cleanup
+          sysbox-runtime: running
       containers:
-      - name: kube-sysbox-cleanup
+      - name: sysbox-cleanup
         image: nestybox/sysbox-deploy
         imagePullPolicy: Always
-        command: [ "bash", "-c", "/opt/sysbox/scripts/sysbox-deploy-k8s reset" ]
+        command: [ "bash", "-c", "/opt/sysbox/scripts/sysbox-deploy-k8s cleanup" ]
         env:
         - name: NODE_NAME
           valueFrom:
@@ -29,30 +29,30 @@ spec:
         securityContext:
           privileged: false
         volumeMounts:
-        - name: crio-conf
-          mountPath: /etc/crio/
-        - name: dbus
+        - name: host-etc
+          mountPath: /mnt/host/etc
+        - name: host-dbus
           mountPath: /var/run/dbus
-        - name: run-systemd
+        - name: host-run-systemd
           mountPath: /run/systemd
-        - name: lib-systemd
+        - name: host-lib-systemd
           mountPath: /mnt/host/lib/systemd
-        - name: usr-bin
+        - name: host-usr-bin
           mountPath: /mnt/host/usr/bin/
       volumes:
-        - name: crio-conf
+        - name: host-etc
           hostPath:
-            path: /etc/crio/
-        - name: dbus
+            path: /etc
+        - name: host-dbus
           hostPath:
             path: /var/run/dbus
-        - name: run-systemd
+        - name: host-run-systemd
           hostPath:
             path: /run/systemd
-        - name: lib-systemd
+        - name: host-lib-systemd
           hostPath:
             path: /lib/systemd
-        - name: usr-bin
+        - name: host-usr-bin
           hostPath:
             path: /usr/bin/
   updateStrategy:

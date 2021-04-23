@@ -15,13 +15,9 @@ spec:
     spec:
       serviceAccountName: sysbox-label-node
       containers:
-      - name: kube-sysbox
+      - name: sysbox-deploy
         image: nestybox/sysbox-deploy
         imagePullPolicy: Always
-        lifecycle:
-          preStop:
-            exec:
-              command: ["bash", "-c", "/opt/sysbox/scripts/sysbox-deploy-k8s cleanup"]
         command: [ "bash", "-c", "/opt/sysbox/scripts/sysbox-deploy-k8s install" ]
         env:
         - name: NODE_NAME
@@ -29,34 +25,49 @@ spec:
             fieldRef:
               fieldPath: spec.nodeName
         securityContext:
-          privileged: false
+          privileged: true
         volumeMounts:
-        - name: crio-conf
-          mountPath: /etc/crio/
-        - name: dbus
+        - name: host-etc
+          mountPath: /mnt/host/etc
+        - name: host-osrelease
+          mountPath: /mnt/host/os-release
+        - name: host-dbus
           mountPath: /var/run/dbus
-        - name: run-systemd
+        - name: host-run-systemd
           mountPath: /run/systemd
-        - name: lib-systemd
-          mountPath: /mnt/host/lib/systemd
-        - name: usr-bin
-          mountPath: /mnt/host/usr/bin/
+        - name: host-lib-systemd
+          mountPath: /mnt/host/lib/systemd/system
+        - name: host-lib-sysctl
+          mountPath: /mnt/host/lib/sysctl.d
+        - name: host-usr-bin
+          mountPath: /mnt/host/usr/bin
+        - name: host-usr-lib-mod-load
+          mountPath: /mnt/host/usr/lib/modules-load.d
       volumes:
-        - name: crio-conf
+        - name: host-etc
           hostPath:
-            path: /etc/crio/
-        - name: dbus
+            path: /etc
+        - name: host-osrelease
+          hostPath:
+            path: /etc/os-release
+        - name: host-dbus
           hostPath:
             path: /var/run/dbus
-        - name: run-systemd
+        - name: host-run-systemd
           hostPath:
             path: /run/systemd
-        - name: lib-systemd
+        - name: host-lib-systemd
           hostPath:
-            path: /lib/systemd
-        - name: usr-bin
+            path: /lib/systemd/system
+        - name: host-lib-sysctl
+          hostPath:
+            path: /lib/sysctl.d
+        - name: host-usr-bin
           hostPath:
             path: /usr/bin/
+        - name: host-usr-lib-mod-load
+          hostPath:
+            path: /usr/lib/modules-load.d
   updateStrategy:
     rollingUpdate:
       maxUnavailable: 1
