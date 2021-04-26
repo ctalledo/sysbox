@@ -66,6 +66,8 @@ function copy_sysbox_to_host() {
 
 	distro=$(get_host_distro)
 
+	echo "Detected host distro: $distro"
+
 	if [[ "$distro" == "ubuntu_20.04" ]]; then
 		artifact_dir="$sysbox_artifacts/bin/ubuntu-focal"
 	elif [[ "$distro" == "ubuntu_18.04" ]]; then
