@@ -319,7 +319,7 @@ metadata:
 handler: sysbox-runc
 scheduling:
   nodeSelector:
-     sysboxInNode: true
+     sysboxInNode: "true"
 ```
 
 The `scheduling.nodeSelector` ensures that all pods that use this runtime class

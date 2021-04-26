@@ -1,0 +1,1158 @@
+#!/bin/bash
+
+#
+# NOTE: this script was replaced with the sysbox-deploy installation script.
+# I am keeping it here for reference but note that it has never been used
+# or tested.
+#
+
+#
+# Script to install Sysbox on a Ubuntu Kubernetes node.
+#
+
+VERSION=v0.1
+
+VERBOSE=1
+DRY_RUN=0
+INSTALL_CRIO=0
+UNINSTALL_CRIO=0
+SKIP_CRIO_RESTART=0
+SKIP_KUBELET_RESTART=0
+
+K8S_VERSION_WANT=1.20
+CRIO_VERSION_WANT=$K8S_VERSION_WANT
+
+function log() {
+	if [ "$VERBOSE" -eq 1 ]; then
+		echo "$1"
+	fi
+}
+
+function log_warn() {
+	echo "Warning: $1"
+}
+
+function error()
+{
+	echo "$1" 1>&2
+}
+
+function error_exit()
+{
+	echo "$1" 1>&2
+	exit 1
+}
+
+function retry() {
+  local attempts=$1
+  shift
+  local delay=$1
+  shift
+  local i
+
+  for ((i = 0; i < attempts; i++)); do
+    "$@"
+    if [[ $? -eq 0 ]]; then
+      return 0
+    fi
+    sleep $delay
+  done
+
+  echo "Command \"$@\" failed $attempts times. Output: $status"
+  return 1
+}
+
+function get_version_maj_min() {
+	local version=$1
+	local version_short
+
+	# Trim to major:minor (e.g., X.Y.Z -> X.Y)
+	if [[ $version =~ ^[0-9]+\.[0-9]+ ]]; then
+		version_short=${BASH_REMATCH[0]}
+	else
+		echo "Invalid semantic versioning format: $version"
+		return 1
+	fi
+
+	echo $version_short
+	return 0
+}
+
+function get_distro() {
+	lsb_release -i | cut -d":" -f2 | xargs
+}
+
+function get_distro_version() {
+	lsb_release -r | cut -d":" -f2 | xargs
+}
+
+function get_kernel_version() {
+	local version
+	local version_short
+
+	version=$(uname -r)
+ 	if [ $? -ne 0 ]; then
+		echo "uname: $ret"
+		return 1
+	fi
+
+	version_short=$(get_version_maj_min $version)
+ 	if [ $? -ne 0 ]; then
+		echo "Failed to get version maj & minor numbers: $ret"
+		return 1
+	fi
+
+	echo $version_short
+	return 0
+}
+
+function get_crio_version() {
+	local version
+	local version_short
+
+	version=$(crio --version 2>/dev/null | grep ^Version | cut -d":" -f2 | xargs)
+ 	if [ $? -ne 0 ]; then
+		echo "crio --version failed: $ret"
+		return 1
+	fi
+
+	version_short=$(get_version_maj_min $version)
+ 	if [ $? -ne 0 ]; then
+		echo "Failed to get version maj & minor numbers: $ret"
+		return 1
+	fi
+
+	echo $version_short
+	return 0
+}
+
+function get_k8s_version() {
+	# TODO: Get the K8s version
+	echo "1.20"
+}
+
+function get_env()
+{
+	if [ -z "$DISTRO" ]; then
+		ret=$(get_distro)
+		if [ $? -ne 0 ]; then
+			echo "Failed to get distro: $ret"
+			return 1
+		fi
+		DISTRO=$ret
+	fi
+
+	if [ -z "$KERNEL_VERSION" ]; then
+		ret=$(get_kernel_version)
+		if [ $? -ne 0 ]; then
+			echo "Failed to get kernel version: $ret"
+			return 1
+		fi
+		KERNEL_VERSION=$ret
+	fi
+
+	if [ -z "$K8S_VERSION" ]; then
+		ret=$(get_k8s_version)
+		if [ $? -ne 0 ]; then
+			echo "Failed to get Kubernetes version: $ret"
+			return 1
+		fi
+		K8S_VERSION=$ret
+	fi
+
+	log_env
+	return 0
+}
+
+function validate_env() {
+	if [[ "$DISTRO" != "Ubuntu" ]]; then
+		echo "Not a ubuntu host."
+	fi
+
+	if ! is_systemd_installed; then
+		echo "Not a systemd host."
+	fi
+}
+
+function log_env() {
+	if [ "$VERBOSE" -eq 1 ]; then
+		local format="  %-20s: %s"
+		printf "Host Info:"
+		printf "$format" "Distro" "$DISTRO"
+		printf "$format" "Kernel Version" "$KERNEL_VERSION"
+		printf "$format" "K8s Version" "$K8S_VERSION"
+	fi
+}
+
+function is_systemd_installed() {
+	ret=$(readlink /proc/1/exe)
+	if [[ "$ret" =~ "/lib/systemd/systemd" ]]; then
+		return 0
+	else
+		return 1
+	fi
+}
+
+function is_crio_installed() {
+	which crio
+}
+
+function is_crictl_installed() {
+	which crictl
+}
+
+function is_shiftfs_installed() {
+	modprobe shiftfs
+}
+
+function is_dasel_installed() {
+	which dasel
+}
+
+function is_sysbox_installed() {
+	which sysbox
+}
+
+function install_dasel() {
+
+	log "Installing Dasel (for toml parsing) ..."
+
+	if is_dasel_installed; then
+		log "Dasel is already installed; skipping."
+	fi
+
+	if [ "$DRY_RUN" -eq 1 ]; then
+		log "Dry run: would install dasel at /usr/loca/bin/dasel"
+		return 0
+	fi
+
+	# Dasl (for yaml, toml, json parsing) (https://github.com/TomWright/dasel)
+	ret=$(curl -s https://api.github.com/repos/tomwright/dasel/releases/latest | \
+		grep browser_download_url | \
+		grep linux_amd64 | \
+		cut -d '"' -f 4 | \
+		wget -qi - && mv dasel_linux_amd64 dasel && chmod +x dasel)
+
+	if [ $? -ne 0 ]; then
+		echo $ret
+		return 1
+	fi
+
+	ret=$(mv ./dasel /usr/local/bin/dasel)
+	if [ $? -ne 0 ]; then
+		echo $ret
+		return 1
+	fi
+
+	log "Dasel installed."
+	return 0
+}
+
+function install_crio() {
+	local crio_version
+
+	log "Installing CRI-O ..."
+
+	if is_crio_installed; then
+		crio_version=$(get_crio_version)
+	  	if [ $? -ne 0 ]; then
+			echo "Failed to get CRI-O version: $ret"
+			return 1
+		fi
+
+		if [[ "$crio_version" != "$CRIO_VERSION_WANT" ]]; then
+			error_exit "Error: CRI-O is installed but not at the required version (need $CRIO_VERSION_WANT, have $crio_version); please set CRI-O to version $CRIO_VERSION_WANT."
+		fi
+		log "CRI-O is already installed at the required version ($crio_version)"
+		return 0
+	fi
+
+	# TODO: set "os" and "version" appropriately per the DISTRO, DISTRO_VERSION and K8S_VERSION variables
+	# (e.g., if distro = ubuntu, distro_version = 18.04 and K8S_VERSION=1.20, then os = xUbuntu_18.04 and k8s_version=1.20)
+
+	if [ "$DRY_RUN" -eq 1 ]; then
+		log "Dry run: would install CRI-O"
+		return 0
+	fi
+
+	local os="xUbuntu_18.04"
+	local version="1.20"
+
+	ret=$(echo "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/${os}/ /" > /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list)
+	if [ $? -ne 0 ]; then
+		echo $ret
+		return 1
+	fi
+
+	ret=$(echo "deb http://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/${version}/${os}/ /" > /etc/apt/sources.list.d/devel:kubic:libcontainers:stable:cri-o:${version}.list)
+	if [ $? -ne 0 ]; then
+		echo $ret
+		return 1
+	fi
+
+	ret=$(curl -L https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:${version}/${os}/Release.key | apt-key add -)
+	if [ $? -ne 0 ]; then
+		echo $ret
+		return 1
+	fi
+
+	ret=$(curl -L https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/${os}/Release.key | apt-key add -)
+	if [ $? -ne 0 ]; then
+		echo $ret
+		return 1
+	fi
+
+	ret=$(apt-get update)
+	if [ $? -ne 0 ]; then
+		echo $ret
+		return 1
+	fi
+
+	ret=$(apt-get install -y --no-install-recommends cri-o cri-o-runc)
+	if [ $? -ne 0 ]; then
+		echo $ret
+		return 1
+	fi
+
+	log "CRI-O installed."
+
+	return 0
+}
+
+function uninstall_crio() {
+
+	log "Uninstalling CRI-O ..."
+
+	if [ "$DRY_RUN" -eq 1 ]; then
+		log "Dry run: would uninstall the cri-o package."
+		return 0
+	fi
+
+	ret=$(apt-get purge cri-o)
+	if [ $? -ne 0 ]; then
+		echo "apt-get purge cri-o failed: $ret"
+		return 1
+	fi
+
+	log "CRI-O uninstalled."
+
+	return 0
+}
+
+function install_shiftfs() {
+
+	local repo
+	local branch
+
+	log "Installing Shiftfs ..."
+
+	# TODO: Add support for more versions
+
+	if is_shiftfs_installed; then
+		log "Shiftfs is already installed; skipping installation."
+		return 0
+	fi
+
+	if [ -z "$KERNEL_VERSION" ]; then
+		echo "kernel version is not set, but it's needed for shiftfs installation; skipping."
+		return 1
+	fi
+
+	if [ "$DRY_RUN" -eq 1 ]; then
+		log "Dry run: would install shiftfs kernel module"
+		return 0
+	fi
+
+	repo="https://github.com/toby63/shiftfs-dkms.git"
+
+	if [[ "$KERNEL_VERSION" == "5.4" ]]; then
+		branch="k5.4"
+	fi
+
+	ret=$(apt-get install -y make dkms)
+	if [ $? -ne 0 ]; then
+		echo $ret
+		return 1
+	fi
+
+	ret=$(git clone -b $branch $repo shiftfs-${branch})
+	if [ $? -ne 0 ]; then
+		echo $ret
+		return 1
+	fi
+
+	pushd .
+
+	ret=$(cd shiftfs-${branch})
+	if [ $? -ne 0 ]; then
+		echo $ret
+		return 1
+	fi
+
+	ret=$(./update1)
+	if [ $? -ne 0 ]; then
+		echo $ret
+		return 1
+	fi
+
+	if ! which make; then
+		ret=$(apt-get install make)
+		if [ $? -ne 0 ]; then
+			echo $ret
+			return 1
+		fi
+	fi
+
+	ret=$(make -f Makefile.dkms)
+	if [ $? -ne 0 ]; then
+		echo $ret
+		return 1
+	fi
+
+	# Per https://www.freedesktop.org/software/systemd/man/modules-load.d.html
+	ret=$(mkdir -p /usr/local/lib/modules-load.d)
+	if [ $? -ne 0 ]; then
+		echo $ret
+		return 1
+	fi
+
+	ret=$(echo shiftfs | tee /usr/local/lib/modules-load.d/shiftfs.conf)
+	if [ $? -ne 0 ]; then
+		echo $ret
+		return 1
+	fi
+
+	ret=$(modprobe shiftfs)
+	if [ $? -ne 0 ]; then
+		echo $ret
+		return 1
+	fi
+
+	ret=$(lsmod | grep shiftfs)
+	if [ $? -ne 0 ]; then
+		echo "failed to install shiftfs: lsmod: $ret"
+		return 1
+	fi
+
+	# TODO: cleanup shiftfs dir ...
+
+	popd
+
+	log "Shiftfs installed."
+
+	return 0
+}
+
+function uninstall_shiftfs() {
+
+	log "Uninstalling Shiftfs ..."
+
+	if [ "$DRY_RUN" -eq 1 ]; then
+		log "Dry run: would uninstall shiftfs."
+		return 0
+	fi
+
+	ret=$(modprobe -r shiftfs)
+	if [ $? -ne 0 ]; then
+		echo "modprobe -r shiftfs failed: $ret"
+		return 1
+	fi
+
+	local shiftfs_conf=/usr/local/lib/modules-load.d/shiftfs.conf
+
+	ret=$(rm $shiftfs_conf)
+	if [ $? -ne 0 ]; then
+		echo "failed to remove ${shiftfs_conf}: $ret"
+		return 1
+	fi
+
+	log "Shiftfs uninstalled."
+
+	return 0
+}
+
+function install_sysbox() {
+
+	log "Installing Sysbox package $SYSBOX_PKG ..."
+
+	if sysbox_installed; then
+		log "Sysbox is already installed; skipping installation."
+		return 0
+	fi
+
+	if [ "$DRY_RUN" -eq 1 ]; then
+		log "Dry run: would install Sysbox package $SYSBOX_PKG"
+		return 0
+	fi
+
+	ret=$(yes | dpkg -i $SYSBOX_PKG)
+	if [ $? -ne 0 ]; then
+		echo "Failed to install Sysbox package: $ret"
+		return 1
+	fi
+
+	ret=$(retry 10 1 systemctl is-active sysbox)
+	if [[ $? -ne 0 ]]; then
+		echo "Sysbox systemd service never reached active state: $ret"
+		return 1
+	fi
+
+	log "Sysbox installed."
+
+	return 0
+}
+
+function uninstall_sysbox() {
+
+	log "Uninstalling Sysbox package ..."
+
+	if ! sysbox_installed; then
+		log "Sysbox is not installed; skipping uninstallation."
+		return 0
+	fi
+
+	if [ "$DRY_RUN" -eq 1 ]; then
+		log "Dry run: would uninstall Sysbox package."
+		return 0
+	fi
+
+	ret=$(yes | dpkg --purge sysbox)
+	if [ $? -ne 0 ]; then
+		echo "Failed to remove Sysbox package: $ret"
+		return 1
+	fi
+
+	ret=$(systemctl is-active sysbox)
+	if [ $? -eq 0 ]; then
+		echo "Sysbox systemd service should be inactive but it's still active."
+		return 1
+	fi
+
+	if sysbox_installed; then
+		log "Sysbox binaries should be gone but are still present."
+		return 1
+	fi
+
+	log "Sysbox uninstalled."
+
+	return 0
+}
+
+function config_crio_subids() {
+
+	# TODO: Improve the subid allocation (make it dynamic, not static)
+
+	# Add user "containers" to /etc/sub[u,g]id (needed by the containers/storage
+	# lib used by CRI-O) Note: range was chosen manually to not conflict with
+	# Sysbox's range and allow for up to 16384 pods of 65536 IDs each.
+
+	grep "containers" /etc/subuid
+	if [ $? -eq 1 ]; then
+		echo "containers:2147483648:1073741824" >> /etc/subuid
+	fi
+	grep "containers" /etc/subgid
+	if [ $? -eq 1 ]; then
+		echo "containers:2147483648:1073741824" >> /etc/subgid
+	fi
+
+	return 0
+}
+
+function config_crio_storage_driver() {
+
+	ret=$(dasel put string -f /etc/crio/crio.conf -p toml -m 'crio.storage_driver' "overlay")
+	if [[ $? -ne 0 ]]; then
+		echo "Failed to configure crio.storage_driver: $ret"
+		return 1
+	fi
+
+	# metacopy=on improves startup time of CRI-O rootless containers significantly
+	ret=$(dasel put string -f /etc/crio/crio.conf -p toml -m 'crio.storage_option.[]' "overlay.mountopt=metacopy=on")
+	if [[ $? -ne 0 ]]; then
+		echo "Failed to configure crio.storage_option: $ret"
+		return 1
+	fi
+
+	return 0
+}
+
+function config_crio_cgroup_driver() {
+
+	# TODO: do this only if k8s is configured with the cgroupfs driver; skip if using the systemd cgroup driver
+
+	ret=$(dasel put string -f /etc/crio/crio.conf -p toml "crio.runtime.cgroup_manager" "cgroupfs")
+	if [[ $? -ne 0 ]]; then
+		echo "Failed to configure crio.runtime.cgroup_manager: $ret"
+		return 1
+	fi
+
+	ret=$(dasel put string -f /etc/crio/crio.conf -p toml "crio.runtime.conmon_cgroup" "pod")
+	if [[ $? -ne 0 ]]; then
+		echo "Failed to configure crio.runtime.conmon_cgrop: $ret"
+		return 1
+	fi
+
+	return 0
+}
+
+function config_crio_add_sysbox() {
+
+	log "Configuring CRI-O to learn about Sysbox ..."
+
+	if [ "$DRY_RUN" -eq 1 ]; then
+		log "Dry run: would configure /etc/crio/crio.conf"
+		return 0
+	fi
+
+	# Add Sysbox to CRI-O's list of runtimes
+	ret=$(dasel put object -f /etc/crio/crio.conf -p toml -t string -t string "crio.runtime.runtimes.sysbox-runc" \
+			"runtime_path=/usr/local/sbin/sysbox-runc" "runtime_type=oci")
+	if [[ $? -ne 0 ]]; then
+		echo "Failed to configure CRI-O: $ret"
+		return 1
+	fi
+
+	ret=$(dasel put string -f /etc/crio/crio.conf -p toml "crio.runtime.runtimes.sysbox-runc.allowed_annotations.[0]" \
+					"io.kubernetes.cri-o.userns-mode")
+	if [[ $? -ne 0 ]]; then
+		echo "Failed to configure CRI-O: $ret"
+		return 1
+	fi
+
+	ret=$(config_crio_storage_driver)
+	if [[ $? -ne 0 ]]; then
+		echo "Failed to configure CRI-O storage driver: $ret"
+		return 1
+	fi
+
+	ret=$(config_crio_cgroup_driver)
+	if [[ $? -ne 0 ]]; then
+		echo "Failed to configure CRI-O cgroup driver: $ret"
+		return 1
+	fi
+
+	ret=$(config_crio_subids)
+	if [[ $? -ne 0 ]]; then
+		echo "Failed to configure CRI-O subids: $ret"
+		return 1
+	fi
+
+	log "CRI-O configured."
+
+	return 0
+}
+
+function config_crio_rm_sysbox() {
+
+	log "Configuring CRI-O to forget about Sysbox ..."
+
+	if [ "$DRY_RUN" -eq 1 ]; then
+		log "Dry run: would configure /etc/crio/crio.conf"
+		return 0
+	fi
+
+	# Remove Sysbox from list of runtimes
+	# Note: dasel does not yet have a proper delete command, so we need the "sed" below.
+
+	ret=$(dasel put document -f /etc/crio/crio.conf -p toml  '.crio.runtime.runtimes.sysbox-runc' '')
+	if [[ $? -ne 0 ]]; then
+		echo "Failed to remove sysbox-runc from /etc/crio/crio.conf: $ret"
+		return 1
+	fi
+
+	sed -i "s/\[crio.runtime.runtimes.sysbox-runc\]//g" /etc/crio/crio.conf
+}
+
+function config_crictl() {
+	local cri=$1
+
+	log "Configuring crictl to use $cri ..."
+
+	if ! is_crictl_installed; then
+		log "crictl is not installed, skipping config."
+		return 0
+	fi
+
+	if [ "$DRY_RUN" -eq 1 ]; then
+		log "Dry run: would configure crictl to use $cri."
+		return 0
+	fi
+
+	# Configure crictl to use CRI-O
+	ret=$(dasel put string -f /etc/crictl.yaml -p yaml -m '.runtime-endpoint' "unix:///var/run/${cri}/${cri}.sock")
+	if [[ $? -ne 0 ]]; then
+		echo "Failed to configure crictl runtime endpoint to $cri: $ret"
+		return 1
+	fi
+
+	ret=$(dasel put string -f /etc/crictl.yaml -p yaml -m '.image-endpoint' "unix:///var/run/${cri}/${cri}.sock")
+	if [[ $? -ne 0 ]]; then
+		echo "Failed to configure crictl image endpoint to $cri: $ret"
+		return 1
+	fi
+
+	log "crictl configured with $cri."
+
+	return 0
+}
+
+function config_kubelet() {
+	local cri=$1
+
+	log "Configuring Kubelet to use $cri ..."
+
+	if [ "$DRY_RUN" -eq 1 ]; then
+		log "Dry run: would configure Kubelet to use ${cri}."
+		return 0
+	fi
+
+	# TODO: this works on GKE, but may not work in other environments
+
+	ret=$(sed -i 's@--container-runtime-endpoint=unix:///run/containerd/containerd.sock@--container-runtime-endpoint=unix:///run/${cri}/${cri}.sock@g' /etc/default/kubelet)
+	if [[ $? -ne 0 ]]; then
+		echo "Failed to configure kubelet container runtime to ${cri}: $ret"
+		return 1
+	fi
+
+	ret=$(sed -i 's@--runtime-cgroups=/system.slice/containerd.service@--runtime-cgroups=/system.slice/${cri}.service@g' /etc/default/kubelet)
+	if [[ $? -ne 0 ]]; then
+		echo "Failed to configure kubelet runtime cgroups to ${cri}: $ret"
+		return 1
+	fi
+
+	log "Kubelet configured to use $cri."
+
+	return 0
+}
+
+function restart_crio() {
+
+	# TODO: make this work in non-systemd environments.
+
+	log "Restarting CRI-O ..."
+
+	if [ "$DRY_RUN" -eq 1 ]; then
+		log "Dry run: would restart CRI-O."
+		return 0
+	fi
+
+	ret=$(systemctl restart crio)
+	if [[ $? -ne 0 ]]; then
+		echo "systemd restart of crio service failed: $ret"
+		return 1
+	fi
+
+	sleep 3
+
+	ret=$(retry 10 1 systemctl is-active crio)
+	if [[ $? -ne 0 ]]; then
+		echo "CRI-O systemd service never reached active state: $ret"
+		return 1
+	fi
+
+	log "CRI-O restarted."
+
+	return 0
+}
+
+function restart_kubelet() {
+
+	# TODO: make this work in non-systemd environments
+
+	log "Restarting Kubelet ..."
+
+	if [ "$DRY_RUN" -eq 1 ]; then
+		log "Dry run: would restart Kubelet."
+		return 0
+	fi
+
+	ret=$(systemctl restart kubelet)
+	if [[ $? -ne 0 ]]; then
+		echo "systemd restart of kubelet service failed: $ret"
+		return 1
+	fi
+
+	sleep 3
+
+	ret=$(retry 10 1 systemctl is-active kubelet)
+	if [[ $? -ne 0 ]]; then
+		echo "Kubelet systemd service never reached active state: $ret"
+		return 1
+	fi
+
+	log "Kubelet restarted."
+
+	return 0
+}
+
+function do_install() {
+
+	local crio_needs_restart=0
+	local kubelet_needs_restart=0
+
+	if [ "$EUID" -ne 0 ]; then
+		error_exit "Please run as root."
+	fi
+
+	log "Setting up Sysbox on the Kubernetes node ..."
+
+	ret=$(get_env)
+	if [ $? -ne 0 ]; then
+		echo "$ret"
+		return 1
+	fi
+
+	ret=$(validate_env)
+	if [ $? -ne 0 ]; then
+		echo "Failed to validate environment: $ret"
+		return 1
+	fi
+
+	if [ "$INSTALL_CRIO" -eq 1 ]; then
+		ret=$(install_crio)
+		if [ $? -ne 0 ]; then
+			echo "Failed to install CRI-O: $ret"
+			return 1
+		fi
+
+		kubelet_needs_restart=1
+	fi
+
+	ret=$(install_shiftfs)
+	if [ $? -ne 0 ]; then
+		echo "Failed to install the shiftfs kernel module: $ret"
+		return 1
+	fi
+
+	ret=$(install_sysbox)
+	if [ $? -ne 0 ]; then
+		echo "Failed to install Sysbox: $ret"
+		return 1
+	fi
+
+	# Dasel is needed for parsing of TOML files (e.g., /etc/crio/crio.conf)
+	ret=$(install_dasel)
+	if [ $? -ne 0 ]; then
+		echo "Failed to install Dasel: $ret"
+		return 1
+	fi
+
+	ret=$(config_crio_add_sysbox)
+	if [ $? -ne 0 ]; then
+		echo "Failed to configure CRI-O: $ret"
+		return 1
+	fi
+
+	crio_needs_restart=1
+
+	ret=$(config_crictl crio)
+	if [ $? -ne 0 ]; then
+		echo "Failed to configure crictl with CRI-O: $ret"
+		return 1
+	fi
+
+	ret=$(config_kubelet crio)
+	if [ $? -ne 0 ]; then
+		echo "Failed to configure Kubelet with CRI-O: $ret"
+		return 1
+	fi
+
+	if [ "$crio_needs_restart" -eq 1 ] && [ "$SKIP_CRIO_RESTART" -eq 0 ]; then
+		ret=$(restart_crio)
+		if [ $? -ne 0 ]; then
+			echo "Failed to restart CRI-O: $ret"
+			return 1
+		fi
+	fi
+
+	if [ "$kubelet_needs_restart" -eq 1 ] && [ "$SKIP_KUBELET_RESTART" -eq 0 ]; then
+		ret=$(restart_kubelet)
+		if [ $? -ne 0 ]; then
+			echo "Failed to restart Kubelet: $ret"
+			return 1
+		fi
+	fi
+
+	log "Done."
+
+	return 0
+}
+
+function do_uninstall() {
+
+	local crio_needs_restart=0
+	local kubelet_needs_restart=0
+
+	if [ "$EUID" -ne 0 ]; then
+		error_exit "Please run as root."
+	fi
+
+	log "Uninstalling Sysbox on the Kubernetes node ..."
+
+	ret=$(uninstall_sysbox)
+	if [ $? -ne 0 ]; then
+		echo "Failed to uninstall Sysbox: $ret"
+		return 1
+	fi
+
+	ret=$(uninstall_shiftfs)
+	if [ $? -ne 0 ]; then
+		echo "Failed to uninstall the shiftfs kernel module: $ret"
+		return 1
+	fi
+
+	ret=$(config_crio_rm_sysbox)
+	if [ $? -ne 0 ]; then
+		echo "Failed to configure CRI-O: $ret"
+		return 1
+	fi
+
+	crio_needs_restart=1
+
+	if [ "$UNINSTALL_CRIO" -eq 1 ]; then
+
+		# We only uninstall CRI-O if containerd is running (to avoid leaving the
+		# K8s node without a CRI implementation).
+		ret=$(systemctl is-active containerd)
+
+		if [ $? -ne 0 ]; then
+			echo "Skipping CRI-O uninstall to avoid leaving the Kubernets node without a CRI (containerd is not active)."
+		else
+			ret=$(uninstall_crio)
+			if [ $? -ne 0 ]; then
+				echo "Failed to uninstall CRI-O: $ret"
+				return 1
+			fi
+
+			crio_needs_restart=0
+
+			ret=$(config_crictl containerd)
+			if [ $? -ne 0 ]; then
+				echo "Failed to configure crictl with containerd: $ret"
+				return 1
+			fi
+
+			ret=$(config_kubelet containerd)
+			if [ $? -ne 0 ]; then
+				echo "Failed to configure Kubelet with containerd: $ret"
+				return 1
+			fi
+
+			kubelet_needs_restart=1
+		fi
+	fi
+
+	if [ "$crio_needs_restart" -eq 1 ] && [ "$SKIP_CRIO_RESTART" -eq 0 ]; then
+		ret=$(restart_crio)
+		if [ $? -ne 0 ]; then
+			echo "Failed to restart CRI-O: $ret"
+			return 1
+		fi
+	fi
+
+	if [ "$kubelet_needs_restart" -eq 1 ] && [ "$SKIP_KUBELET_RESTART" -eq 0 ]; then
+		ret=$(restart_kubelet)
+		if [ $? -ne 0 ]; then
+			echo "Failed to restart Kubelet: $ret"
+			return 1
+		fi
+	fi
+
+	log "Done."
+
+	return 0
+}
+
+
+function show_usage_uninstall() {
+	printf "\n"
+	printf "Usage: $0 uninstall [OPTIONS]\n"
+	printf "\n"
+	printf "Uninstalls Sysbox on the Kubernetes node.\n"
+	printf "\n"
+	printf "Options:\n"
+	printf "      --dry-run               Does not make any changes on the node; instead logs the would-be changes to stdout.\n"
+	printf "      --uninstall-crio        Uninstalls CRI-O too (configures Kubelet with containerd); ignored if containerd is not present.\n"
+	printf "      --skip-crio-restart     Do not restart CRI-O; manual restart will be needed to forget about Sysbox. Ignored if --uninstall-crio is set.\n"
+	printf "      --skip-kubelet-restart  Do not restart the Kubelet; manual restart will be needed if CRI-O was uninstalled.\n"
+	printf "  -h, --help                  Display usage.\n"
+}
+
+function parse_uninstall_args() {
+	options=$(getopt -o h -l dry-run,remove-crio,skip-crio-restart,skip-kubelet-restart,help -- "$@")
+
+	[ $? -eq 0 ] || {
+		show_usage_uninstall
+		return 1
+	}
+
+	eval set -- "$options"
+
+	while true; do
+		case "$1" in
+			-h | --help)
+				show_usage_uninstall
+				;;
+			--dry-run)
+				DRY_RUN=1
+				;;
+			--uninstall-crio)
+				UNINSTALL_CRIO=1
+				;;
+			--skip-crio-restart)
+				SKIP_CRIO_RESTART=1
+				;;
+			--skip-kubelet-restart)
+				SKIP_KUBELET_RESTART=1
+				;;
+			--)
+				shift
+				break
+				;;
+			-*)
+				show_usage_uninstall
+				;;
+			*)
+				show_usage_uninstall
+				;;
+		esac
+		shift
+	done
+
+  return 0
+}
+
+function show_usage_install() {
+  printf "\n"
+  printf "Usage: $0 install [OPTIONS] path-to-sysbox-package\n"
+  printf "\n"
+  printf "Installs Sysbox on the Kubernetes node. The path to the Sysbox binary package must be provided.\n"
+  printf "\n"
+  printf "Options:\n"
+  printf "      --dry-run               Does not make any changes on the node; instead logs the would-be changes to stdout.\n"
+  printf "      --install-crio          Installs CRI-O too (required by Sysbox). If CRI-O is already installed, this is a no-op.\n"
+  printf "      --skip-crio-restart     Do not restart CRI-O; manual restart will be needed to work with Sysbox.\n"
+  printf "      --skip-kubelet-restart  Do not restart the Kubelet; manual restart will be needed if CRI-O was installed.\n"
+  printf "  -h, --help                  Display usage.\n"
+}
+
+function parse_install_args() {
+  options=$(getopt -o h -l dry-run,skip-crio-restart,skip-kubelet-restart,help -- "$@")
+
+  [ $? -eq 0 ] || {
+    show_usage_install
+    return 1
+  }
+
+  eval set -- "$options"
+
+  while true; do
+    case "$1" in
+      -h | --help)
+			show_usage_install
+			;;
+		--dry-run)
+			DRY_RUN=1
+			;;
+		--install-crio)
+			INSTALL_CRIO=1
+			;;
+		--skip-crio-restart)
+			SKIP_CRIO_RESTART=1
+			;;
+		--skip-kubelet-restart)
+			SKIP_KUBELET_RESTART=1
+			;;
+      --)
+			shift
+			break
+			;;
+      -*)
+			show_usage_install
+			;;
+      *)
+			show_usage_install
+			;;
+    esac
+    shift
+  done
+
+  SYSBOX_PKG=$1
+  if [[ $SYSBOX_PKG == "" ]]; then
+    error_exit "error: you must specify a path to the Sysbox binary package."
+  fi
+
+  return 0
+}
+
+function show_usage() {
+	printf "\n"
+	printf "Usage: $progname [OPTIONS] COMMAND\n"
+	printf "\n"
+	printf "Provisions Sysbox on a Kubernetes node."
+	printf "\n"
+	printf "Since Sysbox requires CRI-O, this script will also provision CRI-O on the node (if needed)\n"
+	printf "and configure the node's Kubelet to use CRI-O.\n"
+	printf "\n"
+	printf "Example: $ sudo $progname install\n"
+	printf "\n"
+	printf "Commands:\n"
+	printf "      install        Installs Sysbox on the node.\n"
+	printf "      uninstall      Uninstalls Sysbox on the node.\n"
+	printf "      version        Show version info.\n"
+	printf "      help           Show usage info.\n"
+	printf "\n"
+	printf "Run '$0 COMMAND --help' for for more info on that command.\n"
+}
+
+function show_version() {
+  echo "$0 ${VERSION}"
+}
+
+function parse_cmd() {
+  SUBCMD=$2
+
+  case "$SUBCMD" in
+    "install")
+      shift 2
+      parse_install_args "$@"
+		ret=$(do_install)
+		if [ $? -ne 0 ]; then
+			echo "Installation failed: $ret"
+			return 1
+		fi
+      ;;
+    "uninstall")
+      shift 2
+      parse_uninstall_args "$@"
+      ret=$(do_uninstall)
+		if [ $? -ne 0 ]; then
+			echo "Uninstallation failed: $ret"
+			return 1
+		fi
+      ;;
+    "version")
+      shift 2
+      show_version
+      ;;
+    "help")
+      shift 2
+      show_usage
+      ;;
+    *)
+      echo 'Invalid command. Type "$progname help" for usage.'
+      ;;
+  esac
+
+  return 0
+}
+
+function main() {
+	ret=$(parse_cmd $0 "$@")
+	if [ $? -ne 0 ]; then
+		echo $ret
+		exit 1
+	fi
+}
+
+main "$@"

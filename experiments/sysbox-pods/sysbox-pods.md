@@ -27,30 +27,47 @@
 
   - This is exactly what's needed for K8s to integrate with Sysbox.
 
+
 ### Host Config Steps
 
 NOTE:
 
 * These are now documented in https://github.com/nestybox/sysbox-internal/issues/839.
 
+* We will also offer a "sysbox-deploy" daemonset to easily install sysbox on k8s
+  host.
+
+* We will also offer docs for installing sysbox manually:
+
+  - On a self-hosted K8s cluster
+
+  - On a GKE cluster
+
 * The notes below provide further details..
 
-Steps:
 
-1) Install and configure CRI-O on the K8s node (see instructions here: https://cri-o.io/)
+### Manual Config Steps for a Self-Hosted K8s Cluster
+
+1) Install and configure CRI-O on the K8s node
+
+  - See section [CRI-O Config](#cri--o-config)
 
 2) Configure K8s to use CRI-O
 
-3) Configure K8s to learn about Sysbox
+3) Install Sysbox on the node
 
-4) Configure K8s pod to use Sysbox
+4) Configure K8s to learn about Sysbox
+
+5) Configure K8s pod to use Sysbox
 
 
-#### Install & Configure CRI-O
+#### 1) Install & Configure CRI-O
 
 * Need CRI-O 1.20.
 
   - It's the first CRI-O release to bring in user-ns support.
+
+  - CRI-O 1.21 breaks userns ID-mapping, so don't use it for now.
 
 * In addition, CRI-O must be configured with:
 
@@ -60,11 +77,20 @@ Steps:
 
     - Sysbox supports either systemd or cgroupfs.
 
-  - sysbox-runc as one of the runtimes with userns "annotations" enabled.
+  - Sysbox-runc as one of the runtimes with userns "annotations" enabled.
 
-* To do this, the CRI-O config file (`/etc/crio/crio.conf`) must have this:
+  - Storage = overlayfs, with "nodev" removed and "metacopy=on" set.
+
+  - User "containers" must be present in the `/etc/sub[ug]id` files.
+
+
+* E.g., : sample CRI-O config in `/etc/crio/crio.conf`:
 
 ```
+# Storage config
+storage_driver = "overlay"
+storage_option = ["overlay.mountopt=metacopy=on"]
+
 # Cgroup setting for conmon
 #conmon_cgroup = "system.slice"
 conmon_cgroup = "pod"
@@ -79,42 +105,56 @@ runtime_type = "oci"
 allowed_annotations = ["io.kubernetes.cri-o.userns-mode"]
 ```
 
+* And this is the subid config (CRI-O will pick the container uids from the
+  range for user "containers").
+
+```
+$ cat /etc/subuid
+containers:165536:268435456
+sysbox:268600992:268435456
+```
+
 * Then restart CRI-O:
 
 ```
 systemctl restart crio
 ```
 
+
 #### Configure K8s to use CRI-O
 
+* NOTE: need k8s 1.20 since CRI-O is 1.20 (versions *must* match).
 
-* Install kubeadm
+* Install kubeadm on all nodes
 
 ```
+sudo curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add
+sudo apt-add-repository "deb http://apt.kubernetes.io/ kubernetes-xenial main"
 sudo apt-get install -y kubelet=1.20.2-00 kubeadm=1.20.2-00 kubectl=1.20.2-00
 ```
 
-* Init K8s with kubeadm
+* Init K8s master with kubeadm
 
 ```
 sudo swapoff -a
-sudo kubeadm init --cri-socket="/var/run/crio/crio.sock" --kubernetes-version=v1.20.2 --pod-network-cidr=10.244.0.0/16
+sudo kubeadm init --kubernetes-version=v1.20.2 --pod-network-cidr=10.244.0.0/16
 kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
 ```
 
-* For for a worker node:
+* For the K8s worker nodes where sysbox will be installed, use CRI-O:
 
 ```
-sudo kubeadm join --cri-socket="/var/run/crio/crio.sock ..."
+sudo swapoff -a
+sudo kubeadm join --cri-socket="/var/run/crio/crio.sock" <join-token>"
 ```
 
-* To clear the node's config:
+* To clear the worker node's config:
 
 ```
 sudo kubeadm reset --cri-socket="/var/run/crio/crio.sock"
 ```
 
-* Kubelet config
+* Kubelet config is here:
 
 ```
 /etc/kubernetes/kubelet.conf
@@ -152,6 +192,7 @@ Wants=crio.service
 
   NOTE: you can't yet configure the CRI via the kubelet config file.
 
+
 #### Configure K8s to learn about the Sysbox runtime
 
 * This is done via a k8s `RuntimeClass` object:
@@ -162,7 +203,14 @@ kind: RuntimeClass
 metadata:
   name: sysbox-runc
   handler: sysbox-runc
+scheduling:
+  nodeSelector:
+    sysbox-runtime: running
 ```
+
+* Here we assume that nodes where Sysbox is running are labeled with
+  "sysbox-runtime=running".
+
 
 #### Configure Pods to use Sysbox
 
@@ -191,6 +239,10 @@ spec:
   restartPolicy: Never
 ```
 
+* NOTE: don't set `shareProcessNamespace: true` in the pod spec when
+  running pods with systemd (otherwise the pod's pause container
+  will be pid 1 inside the pod, and systemd won't work properly).
+
 #### Optional: allow sched on master node (for single node clusters)
 
 ```
@@ -198,22 +250,25 @@ kubectl taint node k8s-node node-role.kubernetes.io/master:NoSchedule-
 ```
 
 
-## CRI-O Config
+## CRI-O Config Notes
 
 * CRI-O brings experimental support for pods with user-ns.
 
   - This is a must-have to launch pods with sysbox.
 
+* Need CRI-O 1.20.
+
+  - It's the first CRI-O release to bring in user-ns support.
+
+  - CRI-O 1.21 breaks userns ID-mapping, so don't use it for now.
+
 * CRI-O: install from packaged version:
 
+  https://cri-o.io/
   https://kubernetes.io/docs/setup/production-environment/container-runtimes/
   https://github.com/cri-o/cri-o/blob/master/tutorials/kubernetes.md
 
   NOTE: The CRI-O major and minor versions must match the Kubernetes major and minor versions.
-
-  NOTE: had to set VERSION=1.18 in order for installation to work (1.19 did not).
-
-  NOTE: the installation complained that files `/etc/apt/trusted.gpg/...` did not exist; had to `touch` them and retry.
 
 * CRI-O: install from source (for CRI-O with experimental userns support):
 
@@ -245,7 +300,7 @@ allowed_annotations = ["io.kubernetes.cri-o.userns-mode"]
   https://github.com/cri-o/cri-o/blob/master/docs/CRI-O.conf.d.5.md
   https://docs.openshift.com/container-platform/3.11/CRI-O/CRI-O_runtime.html
 
-* Start CRI-O after installation: `systemctl start CRI-O.service`.
+* Start CRI-O after installation: `systemctl start crio.service`.
 
 * cri-o cmd line: https://github.com/cri-o/cri-o/blob/master/docs/CRI-O.8.md
 
@@ -308,9 +363,10 @@ sudo CRI-O-status config
 ```
 
 
+
 ## Containerd + Sysbox Config
 
-* Containerd does not yet support pods with user-ns yet.
+* NOTE: Containerd does not yet support pods with user-ns yet.
 
 * If and when it does, we would configure it as follows.
 
@@ -325,7 +381,7 @@ sudo CRI-O-status config
 ```
 [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.sysbox-runc]
     runtime_type = "io.containerd.runtime.v1.linux"
-    runtime_engine = "/usr/local/sbin/sysbox-runc"
+    runtime_engine = "/usr/bin/sysbox-runc"
 ```
 
 * Then restart containerd:
@@ -333,6 +389,7 @@ sudo CRI-O-status config
 ```
 sudo systemctl restart containerd
 ```
+
 
 ## Crictl setup
 
@@ -361,7 +418,7 @@ pull-image-on-create: false
 * You can talk to CRI-O via critcl or directly via it's HTTP API:
 
 ```
-sudo curl -v --unix-socket /var/run/CRI-O/CRI-O.sock http://localhost/info | jq
+sudo curl -v --unix-socket /var/run/crio/crio.sock http://localhost/info | jq
 ```
 
 ```
@@ -481,6 +538,7 @@ Solution: add CNI
 ## Issues
 
 The following are issues we found while experimenting with Sysbox pods.
+
 
 ### Issue: pod with k8s + containerd + sysbox fails  [SOLVED]
 
@@ -1095,7 +1153,8 @@ $ kubectl apply -f kube-flannel-configmap.yaml
  - Verifying multiple nodes and traffic among pods deployed within them
 
 
-### K8s-in-pod fails when host K8s is 1.20 [ SOLVED]
+
+### K8s-in-pod fails when "nodev" is set in the CRI-O storage options [ SOLVED]
 
 Inside the pod, kubeadm init fails due to runc mount problem (operation not permitted)
 
@@ -1136,8 +1195,8 @@ arting container process caused "process_linux.go:449: container init caused \"r
 * The problem is that when OCI runc is doing the bind-mount per the container's
   OCI spec, it does a remount to apply the specified mount options. But the
   specified mount options do not include `nodev`, so runc is in fact clearing
-  that mount option. The kernel denies this with EPERM (aparently this is
-  not allowed within a user-ns).
+  that mount option. The kernel denies this with EPERM (aparently this is not
+  allowed within a user-ns).
 
 * Problem is a known issue to the OCI runc developers.
 
@@ -1182,7 +1241,7 @@ arting container process caused "process_linux.go:449: container init caused \"r
 
   - Or for CRI-O only in: `/etc/crio/crio.conf`, set `crio.storage_driver=overlay` and `crio.storage_option=["overlay.mountopt=metacopy=on"]`.
 
-  - This worked!
+  - NOTE: THIS WORKED!
 
 * Solution 2:
 
@@ -1198,12 +1257,43 @@ arting container process caused "process_linux.go:449: container init caused \"r
 
 
 
+### Found this error when running pods on a worker node (not sysbox related) [SOLVED]
+
+```
+6b-c0cd6c981492)" with CreatePodSandboxError: "CreatePodSandbox for pod \"nginx-6799fc88d8-cpk7s_default(1c72b1fb-f0ae-4915-9c6b-c0cd6c981492)\" failed: rpc error: code = Unknown desc = failed to create pod network sandbox k8s_nginx-6799fc88d8-cpk7s_default_1c72b1fb-f0ae-4915-9c6b-c0cd6c981492_0(eeb6a59bbcb04be1463b9
+937873f137a4dcd2f7fda5ef4b60ce64ffdc73ae071): failed to set bridge addr: \"cni0\" already has an IP address different from 10.244.2.1/24"
+```
+
+* Solve it by removing the node from the cluster, then running:
+
+```
+$ ip link set cni0 down
+$ brctl delbr cni0
+```
+
+Then restarting CRI-O, then re-joining the node to the cluster.
+
+
+
+
+## Troubleshooting Tips
+
+### Pod fails to launch and Kubelet logs show "not enough avaiable IDs" error.
+
+```
+known desc = error creating pod sandbox with name "k8s_ubu-bio-systemd-docker_default_0d0e5315-eaaf-43dc-be44-d7bc436f7b4b_0": could not find enough available IDs
+0e5315-eaaf-43dc-be44-d7bc436f7b4b)" failed: rpc error: code = Unknown desc = error creating pod sandbox with name "k8s_ubu-bio-systemd-docker_default_0d0e5315-eaaf-43dc-be44-d7bc436f7b4b_0": could not find enough available IDs
+```
+
+Solution: make sure user "containers" has an entry in `/etc/subuid` and
+`/etc/subgid`, and that the range is large enough. CRI-O picks up the
+containers subuids from that range.
+
+
 
 ## TODO
 
 * Add crictl + CRI-O + sysbox tests to sysbox test suite  [DONE]
-
-* Update other test container images to add crictl + CRI-O (same as done on ubuntu-focal image). [DONE]
 
 * See if there is a way for CRI-O to use user-ns but not chown the container's rootfs. [DONE - none found]
 
@@ -1250,26 +1340,30 @@ arting container process caused "process_linux.go:449: container init caused \"r
 
 * Try installing sysbox on a GCP k8s node [DONE]
 
-* Debug hang in kind test
+  - Worked manually; I created a doc to track this.
+
+* Update other test container images to add crictl + CRI-O (same as done on
+  ubuntu-focal image).
+
+* Debug hang in kind test [DONE]
 
   - Submit fix to sysbox-ce
 
-  - Port fix to sysbox-internal
+  - Port fix to sysbox-internal [DONE]
 
-* Write up sysbox install daemon-set
+* Write up sysbox install daemon-set [DONE]
 
-  - Use Kata-Deploy as example
+* Send sysbox pods early sample to:
 
-  - https://github.com/kata-containers/packaging/tree/master/kata-deploy/examples
+  - Okteto
 
-* Write up a docker-based sysbox installer
+  - Jerome Petazzoni
 
-  - Use Kata-Deploy as example
+  - Miroslav
 
-  - Would void need for RPM package
+  - Coder
 
-
-* Send sysbox pods early sample to Okteto.
+  - Clidey
 
 * Debug this sysbox-fs error (saw it during the sysbox perf tests and kind tests, consistently every few iterations):
 
@@ -1294,7 +1388,7 @@ arting container process caused "process_linux.go:449: container init caused \"r
 
   - Can we allow the inner Docker to load it?
 
-* fix sysbox-runc sysctl validator code
+* Fix sysbox-runc sysctl validator code
 
   `libcontainer/configs/validate/validator.go`
 
@@ -1314,7 +1408,8 @@ arting container process caused "process_linux.go:449: container init caused \"r
 
 * Fix problem with sysbox-mgr failing to init `/var/lib/sysbox` correctly sometimes.
 
-* See if CRI-O top-of-tree works when /etc/subuid has `containers:0:296608:65536` and we use "runAsUser: 296608".
+* See if CRI-O 1.21 and top-of-tree works when /etc/subuid has
+  `containers:0:296608:65536` and we use "runAsUser: 296608".
 
   - This way we always use the same UID for all containers.
 
@@ -1322,7 +1417,7 @@ arting container process caused "process_linux.go:449: container init caused \"r
 
   - Modify sysbox docs accordingly
 
-* Modify sysbox installer to configure CRI-O with Sysbox.
+* Modify sysbox installer to configure CRI-O with Sysbox. [SKIP]
 
 * Fix this problem with sysbox's systemd service unit on ubu bionic:
 
