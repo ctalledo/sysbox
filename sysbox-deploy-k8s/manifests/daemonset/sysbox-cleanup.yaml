@@ -2,23 +2,23 @@
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: sysbox-cleanup
+  name: sysbox-cleanup-k8s
   namespace: kube-system
 spec:
   selector:
       matchLabels:
-        name: sysbox-cleanup
+        name: sysbox-cleanup-k8s
   template:
     metadata:
         labels:
-          name: sysbox-cleanup
+          name: sysbox-cleanup-k8s
     spec:
       serviceAccountName: sysbox-label-node
       nodeSelector:
           sysbox-runtime: running
       containers:
-      - name: sysbox-cleanup
-        image: nestybox/sysbox-deploy
+      - name: sysbox-cleanup-k8s
+        image: nestybox/sysbox-deploy-k8s
         imagePullPolicy: Always
         command: [ "bash", "-c", "/opt/sysbox/scripts/sysbox-deploy-k8s.sh cleanup" ]
         env:

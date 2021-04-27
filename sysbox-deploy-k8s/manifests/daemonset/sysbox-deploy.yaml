@@ -2,21 +2,21 @@
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: sysbox-deploy
+  name: sysbox-deploy-k8s
   namespace: kube-system
 spec:
   selector:
       matchLabels:
-        name: sysbox-deploy
+        name: sysbox-deploy-k8s
   template:
     metadata:
         labels:
-          name: sysbox-deploy
+          name: sysbox-deploy-k8s
     spec:
       serviceAccountName: sysbox-label-node
       containers:
-      - name: sysbox-deploy
-        image: nestybox/sysbox-deploy
+      - name: sysbox-deploy-k8s
+        image: nestybox/sysbox-deploy-k8s
         imagePullPolicy: Always
         command: [ "bash", "-c", "/opt/sysbox/scripts/sysbox-deploy-k8s.sh install" ]
         env:
