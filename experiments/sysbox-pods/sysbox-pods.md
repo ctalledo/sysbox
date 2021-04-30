@@ -1334,7 +1334,9 @@ containers subuids from that range.
 
   - sysbox-libs-internal [PENDING REVIEW]
 
-  - sysbox-internal
+  - sysbox-pkgr [REVIEW DONE, NEEDS MERGING]
+
+  - sysbox-internal [NEED TO REBASE FROM MASTER, CREATE PR]
 
 * Create package for GKE (ubu-bionic) [DONE]
 
@@ -1345,13 +1347,11 @@ containers subuids from that range.
 * Update other test container images to add crictl + CRI-O (same as done on
   ubuntu-focal image).
 
-* Debug hang in kind test [DONE]
-
-  - Submit fix to sysbox-ce
-
-  - Port fix to sysbox-internal [DONE]
+* Debug and fix hang in kind test [DONE]
 
 * Write up sysbox install daemon-set [DONE]
+
+* Update sysbox-pkg installer tests per changes in installer.  << HERE
 
 * Send sysbox pods early sample to:
 
@@ -1382,11 +1382,7 @@ containers subuids from that range.
 
   - Use it by default, unless a profile is explicitly set by higher level container manager.
 
-* Deal with lack of Docker app armor profile inside k8s-host.
-
-  - It won't be there if docker is not installed on the host.
-
-  - Can we allow the inner Docker to load it?
+* Deal with lack of Docker apparmor profile inside k8s-host. [SKIP - not a critical issue since the inner Docker works either way]
 
 * Fix sysbox-runc sysctl validator code
 

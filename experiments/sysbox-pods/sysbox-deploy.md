@@ -200,31 +200,68 @@ $ kubectl delete -f sysbox-rbac.yaml
 
 * Create runtime class with selector for sysbox nodes [DONE]
 
-* Cleanup internal notes
+* Cleanup internal notes [DONE]
 
-* Rename sysbox-deploy -> sysbox-deploy-k8s
+* Rename sysbox-deploy -> sysbox-deploy-k8s [DONE]
 
-* Cleanup repo history
+* Cleanup repo history [DONE]
 
-* Write instructions for users to try daemonset
+* Write instructions for users to try daemonset [DONE]
 
-* Provide sample yamls for sysbox pods
+* Verify steps manually [DONE]
 
-* Write script / Make targets to generate the sysbox-deploy container
+* Write scripts to install shiftfs, install & config CRIO, configure kubelet. [SKIP]
+
+  - Make these available
+
+  - Ideally we have a single "prepare node" script that does all of the above.
+
+* Check if Docker installation is required on the host [DONE - not required]
 
 * Try sysbox daemonset on:
 
-  - Self host K8s cluster
+  - Self host K8s cluster [DONE]
 
-  - GKE.
+  - GKE [DONE - worked but with errors ... needs further debug ]
 
-* Improve daemonset to include shiftfs binaries.
+* Fix daemonset so it only installs on nodes with "name=sysbox-deploy-k8s" label.
 
-* Create daemonset for crio runtime installation
+  - On GKE it installed on all nodes for some reason ... even thought the labels were fine.
+
+* Make the sysbox-pods preview repo public.
+
+  - And fix links to manifest files.
+
+* Add support for CRI-O 1.21+
+
+* Move sysbox-deploy scripts to the sysbox-pkgr repo
+
+  - Under the "k8s" subdir
+
+  - Write script / make targets to generate the sysbox-deploy-k8s container
+
+* Improve daemonset to include shiftfs binaries. [SKIP]
+
+* Create daemonset for crio runtime installation [SKIP]
 
 * Write up a docker-based sysbox installer
 
   - To install sysbox via a docker container (similar to sysbox-deploy but for non k8s hosts)
+
+
+## CRI-O installation issues
+
+* After installing CRI-O, I need it to restart it manually via `systemctl restart crio`.
+
+* Even then, log shows:
+
+```
+Apr 28 17:49:29 k8s-node4 crio[3169]: time="2021-04-28 17:49:29.813456324Z" level=warning msg="Error validating CNI config file /etc/cni/net.d/100-crio-bridge.conf: [failed to find plugin \"bridge\" in path [/opt/cni/bin/]]"
+Apr 28 17:49:29 k8s-node4 crio[3169]: time="2021-04-28 17:49:29.813743794Z" level=warning msg="Error validating CNI config file /etc/cni/net.d/200-loopback.conf: [failed to find plugin \"loopback\" in path [/opt/cni/bin/]]"
+Apr 28 17:49:29 k8s-node4 crio[3169]: time="2021-04-28 17:49:29.813893147Z" level=info msg="Update default CNI network name to "
+Apr 28 17:49:29 k8s-node4 crio[3169]: W0428 17:49:29.872876    3169 hostport_manager.go:71] The binary conntrack is not installed, this can cause failures in network connection cleanup.
+Apr 28 17:49:29 k8s-node4 crio[3169]: W0428 17:49:29.889185    3169 hostport_manager.go:71] The binary conntrack is not installed, this can cause failures in network connection cleanup.
+```
 
 
 
