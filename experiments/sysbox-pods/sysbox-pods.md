@@ -1351,19 +1351,37 @@ containers subuids from that range.
 
 * Write up sysbox install daemon-set [DONE]
 
-* Update sysbox-pkg installer tests per changes in installer.  << HERE
+* Port changes to sysbox-ce
+
+    - sysbox-fs [DONE]
+
+    - sysbox-runc [DONE]
+
+    - sysbox-mgr [DONE]
+
+    - sysbox-ipc [DONE]
+
+    - sysbox
+
+* Try integration with containerd
+
+  - Emulate entire /sys to prevent sysfs mount problem.
+
+* Finish up sysbox-deploy tasks.
+
+* Update sysbox-pkg installer tests per changes in installer.
 
 * Send sysbox pods early sample to:
 
-  - Okteto
+  - Okteto [DONE]
 
-  - Jerome Petazzoni
+  - Jerome Petazzoni [DONE]
 
-  - Miroslav
+  - Miroslav [DONE]
 
-  - Coder
+  - Coder [DONE]
 
-  - Clidey
+  - Clidey [DONE]
 
 * Debug this sysbox-fs error (saw it during the sysbox perf tests and kind tests, consistently every few iterations):
 
@@ -1371,8 +1389,6 @@ containers subuids from that range.
 # time="2021-04-04 19:08:25" level=error msg="FUSE file-system could not be unmounted: waitid: no child processes"
 # time="2021-04-04 19:08:25" level=error msg="FuseServer to destroy could not be eliminated for container id 0e23da6a824f5ab30bc18c70a5d6f7180ca6d32395ad5154ec0f6036cc19c55e"
 ```
-
-* Come up with solution for CRI-O versions > 1.20
 
 * Remove all unneeded usage of userns in sysbox-fs
 
