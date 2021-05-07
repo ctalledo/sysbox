@@ -512,10 +512,14 @@ function teardown() {
 
 @test "bind mount above container rootfs" {
 
-  docker run --runtime=sysbox-runc --rm \
-         -v /var/lib:/mnt/var/lib \
-         ${CTR_IMG_REPO}/alpine-docker-dbg:latest \
-         echo hello
+	if [ -z "$SHIFT_UIDS" ]; then
+		skip "CAUSES HANG WITHOUT UID-SHIFTING"
+	fi
 
-  [ "$status" -eq 0 ]
+	docker run --runtime=sysbox-runc --rm \
+          -v /var/lib:/mnt/var/lib \
+          ${CTR_IMG_REPO}/alpine-docker-dbg:latest \
+          echo hello
+
+	[ "$status" -eq 0 ]
 }
